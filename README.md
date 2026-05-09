@@ -1,28 +1,86 @@
 # mycelium
 
-Persistent neural-style memory for Claude Code. Single-process MCP server,
-SQLite + FTS5, two memory cards in one install:
+**Persistent memory for LLM CLIs that behaves like a brain instead of a database.**
 
-- **Semantic** — facts and observations. Co-access strengthens connections,
-  unused paths decay. Structure emerges from usage, not taxonomy.
-- **Behavioral (foundry)** — append-only decision log. Every recorded decision
-  becomes a queryable row for later pattern analysis.
+Things you reference stay strong. Things you ignore fade. Similar ideas link
+themselves through use. The shape of your knowledge emerges from how you
+actually work — you don't curate folders or maintain an index.
 
-Zero external services. One install. One TOML config. Two SQLite files.
+Single-process MCP server, SQLite + FTS5, zero external services. Works with
+Claude Code, Claude Desktop, Codex CLI, or any MCP-speaking client. They can
+all share the same memory store.
 
-> **New here?** Read [docs/concepts.md](docs/concepts.md) first — it's the
-> "read this once and you understand the whole system" doc. Covers what
-> memories/connections/decay/tiers/pinning/confidence/resolvers/checkpoints
-> all are, what each MCP tool is *for*, and the gardener-not-librarian
-> mental model. ~10 minutes.
+## Why you might want this
 
-## Easiest path: have Claude do it for you
+- **Conversations stop being disposable.** What you taught the model on Tuesday
+  is what it knows on Friday. No re-explaining your project structure every
+  session.
+- **Cross-tool continuity.** Lessons from your Claude session are visible to
+  your Codex session. The memory store is the agent's, not any one CLI's.
+- **It self-organizes.** No tags, no folders. The network shape comes from
+  what you actually use; the rest decays. You don't manage it.
+- **It's just files.** One SQLite database for memories, one for decisions,
+  one TOML config. Back it up, copy it, version it, delete it.
+- **No services to run.** No accounts, no API keys, no telemetry. Stays on
+  your machine unless you explicitly run it on a network you control.
 
-You already have Claude Code installed (it's how you'll use this). Paste the
-prompt below into a Claude Code session and it'll detect your OS, pick the
-right install method, run the smoke test, and wire up the MCP server. Read
-the actions before approving — Claude will tell you everything it's about to
-do.
+## What it does
+
+Two memory systems in one install:
+
+- **Semantic memory** — the durable "what I know" store. Save observations,
+  decisions, project facts, conventions. Recall them later by natural-language
+  query. Connections form automatically through co-access; unused paths decay.
+- **Behavioral memory (foundry)** — append-only log of decisions. "Picked the
+  cheaper model tier for this prompt size." Queryable later for pattern
+  analysis or training-data extraction. Optional; turn off if unused.
+
+Plus two slash-skill conventions and a short-term memory hook for Claude Code:
+
+- **`/checkpoint`** — save the current session's state to memory before
+  `/clear`. Resume next time exactly where you left off.
+- **`/maintain`** — periodic janitor pass (snapshot, cold-mark duplicates,
+  rescue orphans) with safety guards. Dry-run by default; asks before applying.
+- **STM hook** — a 6-entry buffer of operational lessons that get injected
+  *before* matching tool runs, so Claude sees the workaround before hitting
+  the same wall again.
+
+> **Want the full mental model before installing?** Read
+> [docs/concepts.md](docs/concepts.md) — what each tool is *for* in plain
+> language, what conventions like `[session-checkpoint]` mean, the
+> gardener-not-librarian framing. ~10 minutes, no commands.
+
+## What a session feels like
+
+```
+You:    [start of a new session]
+Claude: [calls context() automatically — sees your project hubs]
+        "Looks like we're in the middle of acme-api. The OAuth refactor is at
+         step 3 and you mentioned the staging migration is next."
+
+You:    "Right. Let's pick that up."
+Claude: [calls recall("staging migration acme-api")]
+        "OK — last session you confirmed the schema change goes in 0042 and
+         we agreed to use a backfill column. Want me to start there?"
+
+You:    "Yes, and remember the column should default to FALSE not NULL."
+Claude: [calls save("acme-api migration columns default FALSE not NULL — was
+         a source of bugs last quarter", project="acme-api", pinned=true)]
+        "Saved and pinned."
+```
+
+No tags, no folders, no manual recall queries from you. The agent reaches
+for the tools because the MCP server told it to and because the conventions
+in [docs/concepts.md](docs/concepts.md) are its mental model.
+
+## Install
+
+### Easiest: have Claude do it
+
+You already have Claude Code installed (it's how you'll use this). Paste this
+prompt into a Claude Code session — it detects your OS, picks the install
+method, runs the smoke test, and wires up the MCP. Read the actions before
+approving.
 
 ````
 Install the mycelium memory MCP server from
@@ -31,23 +89,21 @@ https://github.com/constant-itis/mycelium-memory.
 Constraints:
 - Detect OS (Linux / macOS / Windows) and adapt commands accordingly.
 - Require Python 3.11+. If missing, STOP and tell me to install Python first.
-  Do not try to install Python yourself.
-- Prefer `pipx install ...`. If pipx is unavailable, fall back to
-  `pip install --user ...` (or `py -m pip install --user ...` on Windows).
+- Prefer `pipx install ...`. Fall back to `pip install --user ...`
+  (or `py -m pip install --user ...` on Windows) if pipx is unavailable.
 - NEVER use sudo. NEVER use --break-system-packages without confirming with me.
 - Use `pip install git+https://github.com/constant-itis/mycelium-memory`
   (or the pipx equivalent) — this isn't on PyPI yet.
 - After install, run the smoke test:
   curl -sL https://raw.githubusercontent.com/constant-itis/mycelium-memory/main/scripts/smoke-test.sh | bash
-  (Use Git Bash / WSL on Windows, or download + run via bash.)
+  (Use Git Bash / WSL on Windows.)
 - If the smoke test passes, register with Claude Code:
   claude mcp add mycelium -- mycelium serve
   Then verify with: claude mcp list
 - Optional follow-ups — ASK ME before doing any of these:
-  1. Append the CLAUDE.md primer (docs/claude-md-primer.md) to my project's
-     CLAUDE.md or my user-level CLAUDE.md.
-  2. Install the /checkpoint skill (clone the repo, symlink
-     skills/checkpoint into ~/.claude/skills/).
+  1. Append the CLAUDE.md primer (docs/claude-md-primer.md) to my CLAUDE.md.
+  2. Install the /checkpoint, /maintain, and /discover skills (clone the
+     repo, symlink each skills/<name> dir into ~/.claude/skills/).
   3. Install the STM hook (clone the repo, run hooks/stm/install.sh —
      requires jq).
 
@@ -55,123 +111,58 @@ Report back: what got installed, where, and which optional steps you'd
 recommend based on my environment.
 ````
 
-If you'd rather do it by hand, the manual instructions below cover the same
-steps.
-
-## Quick start (60 seconds)
-
-**Requirements:** Python 3.11+, `pip` or `pipx`. Optional: `jq` (only if
-installing the STM hook).
+### Manual
 
 ```bash
-# 1. Install. Pick one path that fits your environment:
-pipx install git+https://github.com/constant-itis/mycelium-memory      # cleanest
-# OR:
+# Pick one path:
+pipx install git+https://github.com/constant-itis/mycelium-memory       # cleanest
 pip install --user git+https://github.com/constant-itis/mycelium-memory # if no pipx
-# OR for development:
-git clone https://github.com/constant-itis/mycelium-memory && cd mycelium-memory && pip install -e .
 
-# 2. Verify the install (uses a throwaway temp dir; touches nothing else).
-bash scripts/smoke-test.sh                                  # repo clone path
-# OR if installed via pipx/pip, fetch and run:
+# Verify (uses a throwaway temp dir; touches no user state):
 curl -sL https://raw.githubusercontent.com/constant-itis/mycelium-memory/main/scripts/smoke-test.sh | bash
 
-# 3. Wire into Claude Code (stdio — recommended for single-machine use).
-claude mcp add mycelium -- mycelium serve
-
-# 4. Open Claude Code. The tools (save, recall, context, log_decision, ...)
-#    are now available. Try: "remember that I prefer kebab-case for filenames"
-```
-
-**On Debian/Ubuntu 23+ / Fedora 38+** you may hit `error: externally-managed-environment`.
-Use `pipx` (preferred) or add `--break-system-packages` to the `pip` command
-(safe with `--user`).
-
-**Make sure `~/.local/bin` is on `$PATH`** if you used `pip install --user` —
-that's where the `mycelium` script lands.
-
-### Optional: customize the config
-
-```bash
-mycelium init                  # copy config.example.toml to ~/.mycelium/config.toml
-mycelium config                # print the effective config (defaults + your overrides)
-```
-
-You don't need this to get started — sensible defaults are baked in.
-
-### Optional: remote / multi-machine
-
-```bash
-mycelium serve --transport http --port 8200 &
-claude mcp add mycelium --transport http http://YOUR_HOST:8200/mcp
-```
-
-### Optional: seed from existing material
-
-A fresh install starts empty. If you'd rather hit the ground running than
-wait for memories to accumulate naturally, [docs/seeding.md](docs/seeding.md)
-has paste-ready prompts for seeding from your existing CLAUDE.md, project
-trees, curated bullet lists, the current conversation, or shell history.
-
-### Optional but recommended: the CLAUDE.md primer
-
-Drop [docs/claude-md-primer.md](docs/claude-md-primer.md) into your own
-`CLAUDE.md` so Claude follows a consistent ritual (when to save, what *not*
-to save, project-field convention, consolidate/pin/discover usage, foundry
-patterns). The MCP server already sends a basic `instructions=` block, but
-the primer is the longer opinionated guide.
-
-### Windows
-
-The Python parts work as-is. Substitute `py -m pip ...` for `pip ...`:
-
-```powershell
-py -m pip install --user git+https://github.com/constant-itis/mycelium-memory
-# Make sure %APPDATA%\Python\Python311\Scripts is on PATH so `mycelium` resolves.
+# Wire into Claude Code:
 claude mcp add mycelium -- mycelium serve
 ```
 
-`scripts/smoke-test.sh` and `hooks/stm/install.sh` are bash + need `jq`.
-On Windows run them under **Git Bash** or **WSL**, or skip and verify by
-opening Claude Code and calling `context()`.
+**Windows:** substitute `py -m pip ...` for `pip ...`. The bash scripts
+(`smoke-test.sh`, `hooks/stm/install.sh`) need Git Bash or WSL.
 
-## Works with any MCP client
+**Hit `error: externally-managed-environment` (PEP 668)?** Use `pipx`, or
+add `--break-system-packages` to the pip command (safe with `--user`).
 
-Mycelium is an MCP server — any client that speaks MCP can read and write the
-same memory store. Run one HTTP server and point all your CLIs at it; lessons
-from your morning Claude session are visible to your afternoon Codex session.
+**`mycelium: command not found` after install?** Add `~/.local/bin` (Linux/Mac)
+or `%APPDATA%\Python\Python311\Scripts` (Windows) to `$PATH`. `pipx` handles
+this automatically.
 
-### Claude Code (CLI)
+## Once it's installed
 
-```bash
-# Stdio — simplest for one CLI on one machine
-claude mcp add mycelium -- mycelium serve
+In rough order of "what new users do next":
 
-# HTTP — required if you want multiple clients sharing this server
-mycelium serve --transport http --port 8200 &
-claude mcp add mycelium --transport http http://localhost:8200/mcp
-```
+| Want to... | Read |
+|---|---|
+| Understand the whole system | [docs/concepts.md](docs/concepts.md) |
+| Have Claude follow consistent rituals | [docs/claude-md-primer.md](docs/claude-md-primer.md) — paste into your CLAUDE.md |
+| Bootstrap with existing material | [docs/seeding.md](docs/seeding.md) — paste-prompts for seeding from CLAUDE.md, project trees, notes, shell history |
+| Tune behavior or change paths | [docs/configuration.md](docs/configuration.md) |
+| Hook up Claude Desktop, Codex, or another MCP client | [Multi-client setup](#multi-client-and-other-mcp-clients), below |
+
+## Multi-client and other MCP clients
+
+Mycelium is a vanilla MCP server. Anything that speaks MCP can connect.
+Lessons from your morning Claude session show up in your afternoon Codex
+session — same SQLite, same memories.
 
 ### Claude Desktop App
 
-Edit the desktop config and add an `mcpServers` entry. Path:
-
-- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS)
+or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):
 
 ```json
-{
-  "mcpServers": {
-    "mycelium": {
-      "command": "mycelium",
-      "args": ["serve"]
-    }
-  }
-}
+{ "mcpServers": { "mycelium": { "command": "mycelium", "args": ["serve"] } } }
 ```
 
-Restart the desktop app. (For HTTP transport, consult the desktop app's
-current MCP docs — the JSON shape is in flux.)
+Restart the app.
 
 ### Codex CLI
 
@@ -184,175 +175,44 @@ url = "http://localhost:8200/mcp"
 # Optional: gate write tools behind approval prompts
 [mcp_servers.mycelium.tools.save]
 approval_mode = "approve"
-[mcp_servers.mycelium.tools.log_decision]
-approval_mode = "approve"
 ```
 
-Codex uses HTTP transport, so first start the server in HTTP mode:
+Codex uses HTTP, so start the server first:
 
 ```bash
 mycelium serve --transport http --port 8200 &
 ```
 
-### Any other MCP client
+### Multi-client mechanics
 
-Two transports are supported:
+- **Same machine, multiple stdio clients** — each spawns its own server
+  process, both hit the same `~/.mycelium/memory.db`. SQLite WAL handles it.
+  Just works.
+- **Multiple machines** — run one HTTP server, point each client at it.
 
-- **stdio** — client spawns `mycelium serve` as a subprocess
-- **streamable-http** — client connects to `http://HOST:PORT/mcp`
-
-Consult your client's MCP docs for its config syntax. The endpoints +
-tool surface are standard; only the wrapper config differs.
-
-### Multi-client co-access — how it actually works
-
-- **Same machine, multiple stdio clients** (Claude CLI + Codex CLI both spawning
-  `mycelium serve`): each spawns its own server process, but both processes hit
-  the same `~/.mycelium/memory.db`. SQLite WAL serializes writers + allows
-  concurrent readers. Just works.
-- **Multiple machines or multiple clients sharing one server:** use HTTP
-  transport. Run one `mycelium serve --transport http` and point each client at
-  it. One server, one DB, all clients see the same memories.
-
-> **Security note:** The MCP server has no auth. Don't expose the HTTP
-> transport to the public internet — bind to `127.0.0.1` for one-machine use,
-> or to a private interface (Tailscale, WireGuard, LAN) for trusted multi-machine.
-
-## Tools
-
-### Semantic card
-
-| Tool | What |
-|---|---|
-| `save(content, project="", ...)` | Store a memory. Auto-connects to similar existing memories. |
-| `recall(query, project="", limit=5)` | FTS-search and propagate through connections. |
-| `context(project="")` | Load hub memories — call at session start. |
-| `connections(memory_id)` | Show neighbors of a specific memory. |
-| `consolidate(project="")` | Show hot memories ready to merge into a cold summary. |
-| `forget(memory_id)` | Delete a memory and its connections. |
-| `pin(memory_id)` | Pinned memories' connections never decay below the configured floor. |
-| `resolve(term, meanings)` | Disambiguate an ambiguous term — returned ahead of recall results. |
-| `discover()` | Find hidden connections (semantic, keyword-cluster, project-hub, orphan). |
-| `review()` | Network health: stale, dense, orphaned. |
-
-### Behavioral card (foundry)
-
-| Tool | What |
-|---|---|
-| `log_decision(decision_point, agent, decision_made, ...)` | Append-only, fail-soft. Writes JSONL. |
-| `query_decisions(agent, decision_point, failure_class, since_iso, limit)` | Read back from SQLite. Drains JSONL first. |
-
-CLI equivalents:
-
-```bash
-mycelium foundry ingest                       # drain JSONL -> SQLite
-mycelium foundry query --agent X --limit 10   # query back
-```
-
-### Maintenance
-
-Decay and pruning happen automatically on every `recall()`. The deeper janitor
-pass (snapshot + cold-mark duplicate checkpoints + cold-mark superseded
-memories + orphan rescue) is on-demand:
-
-| Path | How |
-|---|---|
-| Ask Claude | Type `/maintain` (skill) — Claude shows the plan and asks before applying |
-| MCP tool directly | `maintain()` (dry-run) or `maintain(execute=True)` |
-| CLI / cron | `mycelium maintain` (dry-run) / `mycelium maintain --execute` |
-
-Cron example (Sunday 3am):
-
-```cron
-0 3 * * 0 /home/me/.local/bin/mycelium maintain --execute >> ~/.mycelium/logs/maintain.log 2>&1
-```
-
-Default guards (override per-call): skip anything pinned, anything with
-`confidence >= 0.8`, anything accessed in the last 7 days. Snapshots the DB
-to `backup_dir` before any destructive op.
-
-`/discover` (skill) is the lighter sibling — finds new connections (semantic
-bridges + project hubs + orphan rescue) without changing tier or deleting
-anything. Good after a fresh seed; cheap to repeat.
-
-## Configuration
-
-Everything is config-driven. Built-in defaults exist only so zero-config works.
-
-- Quick reference: `config.example.toml` (every knob, line-commented)
-- Walkthrough: [docs/configuration.md](docs/configuration.md) (what each knob
-  controls, when to change it, tuning by symptom)
-- Inspect: `mycelium config` prints the effective config + which file it was
-  loaded from. First command to run when something feels off.
+> **Security:** the MCP server has no auth. Bind HTTP transport to
+> `127.0.0.1` for one machine, or to a private interface (Tailscale, LAN)
+> for trusted multi-machine. Don't expose it to the public internet.
 
 ## Backups
 
-Your data lives in:
-
-- `~/.mycelium/memory.db` — semantic
-- `~/.mycelium/foundry.db` + `~/.mycelium/foundry/logs/*.jsonl` — behavioral
-
-Back these up the same way you back up anything else important. The JSONL files
-are the durable source for foundry — if you lose `foundry.db`, re-ingest from
-the JSONL with `mycelium foundry ingest`.
+Your data lives in `~/.mycelium/memory.db` (semantic) and
+`~/.mycelium/foundry.db` + `~/.mycelium/foundry/logs/*.jsonl` (behavioral).
+Back them up like any other important file. The JSONL files are the durable
+source for foundry — if you lose `foundry.db`, re-ingest from JSONL with
+`mycelium foundry ingest`.
 
 ## Troubleshooting
 
 | Symptom | What to check |
 |---|---|
-| `mycelium: command not found` | The `mycelium` script lives wherever your installer put scripts. For `pip install --user` that's `~/.local/bin` (Linux/Mac) or `%APPDATA%\Python\Python311\Scripts` (Windows). Add it to `$PATH`. `pipx` handles this automatically. |
-| `ModuleNotFoundError: No module named 'mcp'` | Install didn't complete, or you're running with the wrong Python. `python3 -c "import mcp"` should succeed; if not, reinstall against the right interpreter. |
-| `error: externally-managed-environment` (PEP 668) on `pip install` | Modern Debian/Ubuntu/Fedora block global pip. Use `pipx install ...` (preferred) or add `--user --break-system-packages` to the pip command. |
-| MCP server doesn't appear in Claude | Restart Claude Code. Run `claude mcp list` to confirm registration. Run `mycelium serve` directly in a terminal to see startup errors. |
-| `database is locked` | Rare WAL contention if many writers race. Just retry. If persistent, check that no zombie `mycelium serve` is still running. |
-| Config not behaving like the file says | Run `mycelium config` to see what was actually resolved + the source file path. Env vars override file values. |
-| `recall()` returns nothing for a memory I know I saved | Check the project field — `recall()` is project-scoped when you pass `project=`. Run `mycelium config` to confirm `db_path` matches what the server is using. |
-
-## Companion bits in this repo
-
-| Path | What |
-|---|---|
-| `skills/checkpoint/` | `/checkpoint` slash-skill — save a session checkpoint to mycelium before `/clear` |
-| `hooks/stm/` | Short-Term Memory — paired Claude Code hooks that inject operational lessons before matching tool runs (separate concern from mycelium proper; lives outside SQLite) |
-| `docs/claude-md-primer.md` | Paste-ready primer for your CLAUDE.md so Claude follows a consistent ritual when using these tools |
-
-## How the semantic memory works
-
-In short:
-
-```
-save(content)          -> insert; auto-connect to top-N FTS-similar; project-index update
-                          (duplicate-detection nudges you to update instead, unless force=True)
-
-recall(query)          -> FTS5 + BM25 entry points; propagate one hop through connections;
-                          score = (token coverage) + (connection strength) + (recency) + (access)
-                          touch every result; co-accessed-in-session pairs get a strength boost
-
-context()              -> rank by (access_count * (connection_count + 1)); return top hub_limit
-                          per-agent ranking when an agent has access history
-
-decay (every recall)   -> connection strength *= exp(-days / decay_tau_days)
-                          drop below prune_threshold; pinned memories floored at pinned_decay_floor
-```
-
-The compounding behavior — frequently-co-accessed memories stay strong,
-rarely-touched paths fade — is the whole point. Don't curate by hand; let
-usage shape the network.
-
-## How foundry works
-
-```
-publisher.publish(...) -> append one JSON line to today's foundry-YYYYMMDD.jsonl
-                          fail-soft: never raises, never blocks the caller
-
-ingest.drain_all(...)  -> read each JSONL from last-known offset; insert into SQLite;
-                          remember new offset (idempotent, safe to run on a timer)
-
-ingest.query(...)      -> filter + ORDER BY ts DESC + LIMIT
-```
-
-Two-stage (JSONL -> SQLite) so the hot path stays tiny and disposable. Lose
-the SQLite, re-ingest from JSONL.
+| `mycelium: command not found` | `~/.local/bin` not on `$PATH`. `pipx` avoids this; otherwise add it manually. |
+| `ModuleNotFoundError: No module named 'mcp'` | Install incomplete or wrong Python. `python3 -c "import mcp"` should succeed. |
+| `error: externally-managed-environment` | PEP 668 wall on Debian/Ubuntu/Fedora. Use `pipx` or `--break-system-packages`. |
+| MCP doesn't appear in Claude | Restart Claude Code. `claude mcp list` confirms registration. Run `mycelium serve` directly to see startup errors. |
+| `database is locked` | Rare WAL contention. Retry. Check no zombie `mycelium serve` is still running. |
+| Config not behaving like the file says | `mycelium config` shows what's actually resolved + the source. Env vars override file values. |
+| `recall()` returns nothing for something I saved | Check the `project` field — recall is project-scoped when you pass `project=`. |
 
 ## License
 
