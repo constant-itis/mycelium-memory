@@ -66,6 +66,103 @@ to save, project-field convention, consolidate/pin/discover usage, foundry
 patterns). The MCP server already sends a basic `instructions=` block, but
 the primer is the longer opinionated guide.
 
+### Windows
+
+The Python parts work as-is. Substitute `py -m pip ...` for `pip ...`:
+
+```powershell
+py -m pip install --user git+https://github.com/constant-itis/mycelium-memory
+# Make sure %APPDATA%\Python\Python311\Scripts is on PATH so `mycelium` resolves.
+claude mcp add mycelium -- mycelium serve
+```
+
+`scripts/smoke-test.sh` and `hooks/stm/install.sh` are bash + need `jq`.
+On Windows run them under **Git Bash** or **WSL**, or skip and verify by
+opening Claude Code and calling `context()`.
+
+## Works with any MCP client
+
+Mycelium is an MCP server — any client that speaks MCP can read and write the
+same memory store. Run one HTTP server and point all your CLIs at it; lessons
+from your morning Claude session are visible to your afternoon Codex session.
+
+### Claude Code (CLI)
+
+```bash
+# Stdio — simplest for one CLI on one machine
+claude mcp add mycelium -- mycelium serve
+
+# HTTP — required if you want multiple clients sharing this server
+mycelium serve --transport http --port 8200 &
+claude mcp add mycelium --transport http http://localhost:8200/mcp
+```
+
+### Claude Desktop App
+
+Edit the desktop config and add an `mcpServers` entry. Path:
+
+- macOS: `~/Library/Application Support/Claude/claude_desktop_config.json`
+- Windows: `%APPDATA%\Claude\claude_desktop_config.json`
+
+```json
+{
+  "mcpServers": {
+    "mycelium": {
+      "command": "mycelium",
+      "args": ["serve"]
+    }
+  }
+}
+```
+
+Restart the desktop app. (For HTTP transport, consult the desktop app's
+current MCP docs — the JSON shape is in flux.)
+
+### Codex CLI
+
+Add to `~/.codex/config.toml`:
+
+```toml
+[mcp_servers.mycelium]
+url = "http://localhost:8200/mcp"
+
+# Optional: gate write tools behind approval prompts
+[mcp_servers.mycelium.tools.save]
+approval_mode = "approve"
+[mcp_servers.mycelium.tools.log_decision]
+approval_mode = "approve"
+```
+
+Codex uses HTTP transport, so first start the server in HTTP mode:
+
+```bash
+mycelium serve --transport http --port 8200 &
+```
+
+### Any other MCP client
+
+Two transports are supported:
+
+- **stdio** — client spawns `mycelium serve` as a subprocess
+- **streamable-http** — client connects to `http://HOST:PORT/mcp`
+
+Consult your client's MCP docs for its config syntax. The endpoints +
+tool surface are standard; only the wrapper config differs.
+
+### Multi-client co-access — how it actually works
+
+- **Same machine, multiple stdio clients** (Claude CLI + Codex CLI both spawning
+  `mycelium serve`): each spawns its own server process, but both processes hit
+  the same `~/.mycelium/memory.db`. SQLite WAL serializes writers + allows
+  concurrent readers. Just works.
+- **Multiple machines or multiple clients sharing one server:** use HTTP
+  transport. Run one `mycelium serve --transport http` and point each client at
+  it. One server, one DB, all clients see the same memories.
+
+> **Security note:** The MCP server has no auth. Don't expose the HTTP
+> transport to the public internet — bind to `127.0.0.1` for one-machine use,
+> or to a private interface (Tailscale, WireGuard, LAN) for trusted multi-machine.
+
 ## Tools
 
 ### Semantic card
@@ -101,18 +198,34 @@ mycelium foundry query --agent X --limit 10   # query back
 
 Everything is config-driven. Built-in defaults exist only so zero-config works.
 
-Resolution order: **CLI args > env vars > config file > defaults.**
+- Quick reference: `config.example.toml` (every knob, line-commented)
+- Walkthrough: [docs/configuration.md](docs/configuration.md) (what each knob
+  controls, when to change it, tuning by symptom)
+- Inspect: `mycelium config` prints the effective config + which file it was
+  loaded from. First command to run when something feels off.
 
-Search paths for the config file:
+## Backups
 
-1. `--config <path>` flag, or `$MYCELIUM_CONFIG`
-2. `$XDG_CONFIG_HOME/mycelium/config.toml`
-3. `~/.config/mycelium/config.toml`
-4. `~/.mycelium/config.toml`
+Your data lives in:
 
-Env vars: `MYCELIUM_<SECTION>_<KEY>` — e.g. `MYCELIUM_SERVER_PORT=9000`.
+- `~/.mycelium/memory.db` — semantic
+- `~/.mycelium/foundry.db` + `~/.mycelium/foundry/logs/*.jsonl` — behavioral
 
-See `config.example.toml` for every knob and what it does.
+Back these up the same way you back up anything else important. The JSONL files
+are the durable source for foundry — if you lose `foundry.db`, re-ingest from
+the JSONL with `mycelium foundry ingest`.
+
+## Troubleshooting
+
+| Symptom | What to check |
+|---|---|
+| `mycelium: command not found` | The `mycelium` script lives wherever your installer put scripts. For `pip install --user` that's `~/.local/bin` (Linux/Mac) or `%APPDATA%\Python\Python311\Scripts` (Windows). Add it to `$PATH`. `pipx` handles this automatically. |
+| `ModuleNotFoundError: No module named 'mcp'` | Install didn't complete, or you're running with the wrong Python. `python3 -c "import mcp"` should succeed; if not, reinstall against the right interpreter. |
+| `error: externally-managed-environment` (PEP 668) on `pip install` | Modern Debian/Ubuntu/Fedora block global pip. Use `pipx install ...` (preferred) or add `--user --break-system-packages` to the pip command. |
+| MCP server doesn't appear in Claude | Restart Claude Code. Run `claude mcp list` to confirm registration. Run `mycelium serve` directly in a terminal to see startup errors. |
+| `database is locked` | Rare WAL contention if many writers race. Just retry. If persistent, check that no zombie `mycelium serve` is still running. |
+| Config not behaving like the file says | Run `mycelium config` to see what was actually resolved + the source file path. Env vars override file values. |
+| `recall()` returns nothing for a memory I know I saved | Check the project field — `recall()` is project-scoped when you pass `project=`. Run `mycelium config` to confirm `db_path` matches what the server is using. |
 
 ## Companion bits in this repo
 
