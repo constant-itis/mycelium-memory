@@ -1,3 +1,5 @@
+![mycelium header](assets/mycelium-header.png)
+
 # mycelium
 
 **Persistent memory for LLM CLIs that behaves like a brain instead of a database.**
