@@ -10,6 +10,48 @@ SQLite + FTS5, two memory cards in one install:
 
 Zero external services. One install. One TOML config. Two SQLite files.
 
+## Easiest path: have Claude do it for you
+
+You already have Claude Code installed (it's how you'll use this). Paste the
+prompt below into a Claude Code session and it'll detect your OS, pick the
+right install method, run the smoke test, and wire up the MCP server. Read
+the actions before approving — Claude will tell you everything it's about to
+do.
+
+````
+Install the mycelium memory MCP server from
+https://github.com/constant-itis/mycelium-memory.
+
+Constraints:
+- Detect OS (Linux / macOS / Windows) and adapt commands accordingly.
+- Require Python 3.11+. If missing, STOP and tell me to install Python first.
+  Do not try to install Python yourself.
+- Prefer `pipx install ...`. If pipx is unavailable, fall back to
+  `pip install --user ...` (or `py -m pip install --user ...` on Windows).
+- NEVER use sudo. NEVER use --break-system-packages without confirming with me.
+- Use `pip install git+https://github.com/constant-itis/mycelium-memory`
+  (or the pipx equivalent) — this isn't on PyPI yet.
+- After install, run the smoke test:
+  curl -sL https://raw.githubusercontent.com/constant-itis/mycelium-memory/main/scripts/smoke-test.sh | bash
+  (Use Git Bash / WSL on Windows, or download + run via bash.)
+- If the smoke test passes, register with Claude Code:
+  claude mcp add mycelium -- mycelium serve
+  Then verify with: claude mcp list
+- Optional follow-ups — ASK ME before doing any of these:
+  1. Append the CLAUDE.md primer (docs/claude-md-primer.md) to my project's
+     CLAUDE.md or my user-level CLAUDE.md.
+  2. Install the /checkpoint skill (clone the repo, symlink
+     skills/checkpoint into ~/.claude/skills/).
+  3. Install the STM hook (clone the repo, run hooks/stm/install.sh —
+     requires jq).
+
+Report back: what got installed, where, and which optional steps you'd
+recommend based on my environment.
+````
+
+If you'd rather do it by hand, the manual instructions below cover the same
+steps.
+
 ## Quick start (60 seconds)
 
 **Requirements:** Python 3.11+, `pip` or `pipx`. Optional: `jq` (only if
