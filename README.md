@@ -100,6 +100,13 @@ mycelium serve --transport http --port 8200 &
 claude mcp add mycelium --transport http http://YOUR_HOST:8200/mcp
 ```
 
+### Optional: seed from existing material
+
+A fresh install starts empty. If you'd rather hit the ground running than
+wait for memories to accumulate naturally, [docs/seeding.md](docs/seeding.md)
+has paste-ready prompts for seeding from your existing CLAUDE.md, project
+trees, curated bullet lists, the current conversation, or shell history.
+
 ### Optional but recommended: the CLAUDE.md primer
 
 Drop [docs/claude-md-primer.md](docs/claude-md-primer.md) into your own
