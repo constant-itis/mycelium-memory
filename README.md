@@ -88,6 +88,7 @@ See `config.example.toml` for every knob and what it does.
 |---|---|
 | `skills/checkpoint/` | `/checkpoint` slash-skill — save a session checkpoint to mycelium before `/clear` |
 | `hooks/stm/` | Short-Term Memory — paired Claude Code hooks that inject operational lessons before matching tool runs (separate concern from mycelium proper; lives outside SQLite) |
+| `docs/claude-md-primer.md` | Paste-ready primer for your CLAUDE.md so Claude follows a consistent ritual when using these tools |
 
 ## How the semantic memory works
 
