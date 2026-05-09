@@ -226,4 +226,6 @@ source for foundry — if you lose `foundry.db`, re-ingest from JSONL with
 
 ## License
 
-MIT. See [LICENSE](LICENSE).
+AGPL-3.0-or-later. See [LICENSE](LICENSE).
+
+For commercial use without AGPL obligations, contact constantitis@gmail.com.
