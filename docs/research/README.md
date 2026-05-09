@@ -1,19 +1,15 @@
 # docs/research/
 
-Long-form notes about how this thing is supposed to work in the broader
-sense — the architectural ideas behind mycelium that go beyond "two SQLite
-files and an MCP server."
+Long-form notes on the architectural ideas behind mycelium — the memory
+governance patterns, the context-economy framing, why semantic and
+behavioral memory belong in separate stores, and how memory transitions
+between representations as agent systems mature.
 
-These docs are **research direction**, not feature documentation. The OSS
-package in this repo implements a subset of what's described here; the rest
-is what mycelium *could* be in a fuller agent-runtime context.
-
-If you want to know what the shipped code does, read the main
-[README](../../README.md) and [docs/concepts.md](../concepts.md). If you want
-the broader theory of memory governance for long-running agents, read on.
+For what the shipped code does, see the main [README](../../README.md) and
+[docs/concepts.md](../concepts.md).
 
 ## Contents
 
 | File | What |
 |---|---|
-| [mycelium-memory-governance.md](mycelium-memory-governance.md) | Long-form notes on memory governance — the event → trace → pattern → lesson → procedure → tool transition chain, the context-economy framing, why semantic and behavioral memory belong in separate stores, and what verifier-driven learning looks like. |
+| [mycelium-memory-governance.md](mycelium-memory-governance.md) | The transition chain (event → trace → pattern → lesson → procedure → tool), context-economy framing, separation of semantic and behavioral memory, verifier-driven learning, and consolidation guardrails. |
