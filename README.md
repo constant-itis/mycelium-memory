@@ -146,6 +146,7 @@ In rough order of "what new users do next":
 | Bootstrap with existing material | [docs/seeding.md](docs/seeding.md) — paste-prompts for seeding from CLAUDE.md, project trees, notes, shell history |
 | Tune behavior or change paths | [docs/configuration.md](docs/configuration.md) |
 | Hook up Claude Desktop, Codex, or another MCP client | [Multi-client setup](#multi-client-and-other-mcp-clients), below |
+| Read the longer thinking behind this | [docs/research/](docs/research/) — paper-form notes on memory governance for long-running agent systems |
 
 ## Multi-client and other MCP clients
 
