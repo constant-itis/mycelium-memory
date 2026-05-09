@@ -52,6 +52,13 @@ Plus two slash-skill conventions and a short-term memory hook for Claude Code:
 
 ## What a session feels like
 
+https://github.com/user-attachments/assets/2a274f61-24e8-4eed-82a2-f3dbe75126cd
+
+Save a few facts → `/clear` → fresh session pulls them right back via
+`context()` and `recall()`. ~50 seconds.
+
+If you'd rather read it as a transcript:
+
 ```
 You:    [start of a new session]
 Claude: [calls context() automatically — sees your project hubs]
