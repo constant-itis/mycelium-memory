@@ -24,6 +24,7 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 
 from . import config as _config
+from . import maintain as _maintain
 from .foundry import publish as foundry_publish
 from .foundry import ingest as foundry_ingest
 from .foundry.schema import init_schema as _init_foundry_schema
@@ -1090,6 +1091,35 @@ def pin(memory_id: int, unpin: bool = False) -> str:
     conn.commit()
     conn.close()
     return f"{'Unpinned' if unpin else 'Pinned'} #{memory_id}: {row['content'][:80]}"
+
+
+@mcp.tool()
+def maintain(
+    execute: bool = False,
+    recent_days: int = 7,
+    confidence_floor: float = 0.8,
+    no_backup: bool = False,
+) -> str:
+    """Periodic memory consolidation — snapshot, plan, cold-mark, orphan rescue.
+
+    Default is dry-run: returns the plan without writing. Pass execute=True to
+    apply. Snapshots the DB to backup_dir before any destructive op (skip with
+    no_backup=True). Skips anything pinned, anything with confidence above
+    confidence_floor, or anything accessed within recent_days.
+
+    Cron path: `mycelium maintain --execute` (same algorithm).
+    """
+    cfg = _cfg()
+    backup_dir = Path(cfg.storage["backup_dir"]).expanduser() if cfg.storage.get("backup_dir") else None
+    result = _maintain.run_maintenance(
+        cfg.db_path,
+        execute=execute,
+        recent_days=recent_days,
+        confidence_floor=confidence_floor,
+        backup_dir=backup_dir,
+        no_backup=no_backup,
+    )
+    return _maintain.format_report(result)
 
 
 @mcp.tool()

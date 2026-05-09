@@ -39,6 +39,22 @@ def _cmd_init(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_maintain(args: argparse.Namespace) -> int:
+    from . import maintain as _maintain
+    cfg = _config.load(args.config)
+    backup_dir = Path(cfg.storage["backup_dir"]).expanduser() if cfg.storage.get("backup_dir") else None
+    result = _maintain.run_maintenance(
+        cfg.db_path,
+        execute=args.execute,
+        recent_days=args.recent_days,
+        confidence_floor=args.confidence_floor,
+        backup_dir=backup_dir,
+        no_backup=args.no_backup,
+    )
+    print(_maintain.format_report(result))
+    return 0 if "error" not in result else 1
+
+
 def _cmd_foundry_ingest(args: argparse.Namespace) -> int:
     from .foundry import ingest as foundry_ingest
     cfg = _config.load(args.config)
@@ -95,6 +111,16 @@ def main(argv: list[str] | None = None) -> int:
 
     cfg_cmd = sub.add_parser("config", help="print effective config")
     cfg_cmd.set_defaults(func=_cmd_config)
+
+    m = sub.add_parser("maintain", help="snapshot + cold-mark + orphan rescue (dry-run by default)")
+    m.add_argument("--execute", action="store_true", help="apply the plan (default is dry-run)")
+    m.add_argument("--recent-days", type=int, default=7,
+                   help="protect anything accessed within the last N days (default: 7)")
+    m.add_argument("--confidence-floor", type=float, default=0.8,
+                   help="protect anything with confidence >= this (default: 0.8)")
+    m.add_argument("--no-backup", action="store_true",
+                   help="skip the snapshot copy (use only if you back up elsewhere)")
+    m.set_defaults(func=_cmd_maintain)
 
     f = sub.add_parser("foundry", help="behavioral memory operations")
     fsub = f.add_subparsers(dest="foundry_cmd", required=True)

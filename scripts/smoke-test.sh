@@ -83,6 +83,16 @@ assert any(r.get("failure_class") == "example" for r in rows), "failure row miss
 
 print(f"  semantic: save+recall+context OK")
 print(f"  foundry:  publish+ingest+query OK ({len(rows)} rows)")
+
+# maintain — dry-run + execute round-trip
+from mycelium import maintain as _maintain
+from pathlib import Path as _P
+dry = _maintain.run_maintenance(cfg.db_path, execute=False)
+assert "plan" in dry and dry["mode"] == "dry-run", f"dry-run shape wrong: {dry}"
+exe = _maintain.run_maintenance(cfg.db_path, execute=True,
+                                 backup_dir=_P(cfg.storage["backup_dir"]).expanduser())
+assert exe["mode"] == "execute" and "executed" in exe, f"execute shape wrong: {exe}"
+print(f"  maintain: dry-run+execute OK (cold={exe['executed']['cold_marked']}, edges={exe['executed']['new_edges']})")
 PY
 
 # 4. Verify the CLI foundry sub-commands work too
@@ -90,6 +100,11 @@ echo
 echo "-- cli foundry --"
 $PY -m mycelium.cli foundry ingest
 $PY -m mycelium.cli foundry query --agent smoke-agent --limit 3
+
+# 5. CLI maintain — dry-run only (we already executed via Python above)
+echo
+echo "-- cli maintain --"
+$PY -m mycelium.cli maintain | head -20
 
 echo
 echo "OK — smoke test passed."

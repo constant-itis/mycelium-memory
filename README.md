@@ -243,6 +243,32 @@ mycelium foundry ingest                       # drain JSONL -> SQLite
 mycelium foundry query --agent X --limit 10   # query back
 ```
 
+### Maintenance
+
+Decay and pruning happen automatically on every `recall()`. The deeper janitor
+pass (snapshot + cold-mark duplicate checkpoints + cold-mark superseded
+memories + orphan rescue) is on-demand:
+
+| Path | How |
+|---|---|
+| Ask Claude | Type `/maintain` (skill) — Claude shows the plan and asks before applying |
+| MCP tool directly | `maintain()` (dry-run) or `maintain(execute=True)` |
+| CLI / cron | `mycelium maintain` (dry-run) / `mycelium maintain --execute` |
+
+Cron example (Sunday 3am):
+
+```cron
+0 3 * * 0 /home/me/.local/bin/mycelium maintain --execute >> ~/.mycelium/logs/maintain.log 2>&1
+```
+
+Default guards (override per-call): skip anything pinned, anything with
+`confidence >= 0.8`, anything accessed in the last 7 days. Snapshots the DB
+to `backup_dir` before any destructive op.
+
+`/discover` (skill) is the lighter sibling — finds new connections (semantic
+bridges + project hubs + orphan rescue) without changing tier or deleting
+anything. Good after a fresh seed; cheap to repeat.
+
 ## Configuration
 
 Everything is config-driven. Built-in defaults exist only so zero-config works.
