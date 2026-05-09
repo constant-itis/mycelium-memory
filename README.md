@@ -8,31 +8,63 @@ SQLite + FTS5, two memory cards in one install:
 - **Behavioral (foundry)** — append-only decision log. Every recorded decision
   becomes a queryable row for later pattern analysis.
 
-Zero external services. One pip install. One TOML config. Two SQLite files.
+Zero external services. One install. One TOML config. Two SQLite files.
 
-## Install
+## Quick start (60 seconds)
 
-```bash
-pip install mycelium-memory
-mycelium init                                                  # writes ~/.mycelium/config.toml
-claude mcp add mycelium -- mycelium serve                      # stdio (default)
-# OR for remote:
-# mycelium serve --transport http --port 8200 &
-# claude mcp add mycelium --transport http http://HOST:8200/mcp
-```
-
-That's it. Open a Claude Code session and the `save`, `recall`, `context`,
-`log_decision`, `query_decisions` (and friends) tools are available.
-
-## Smoke test
-
-After install, verify the round-trip works:
+**Requirements:** Python 3.11+, `pip` or `pipx`. Optional: `jq` (only if
+installing the STM hook).
 
 ```bash
-bash scripts/smoke-test.sh
+# 1. Install. Pick one path that fits your environment:
+pipx install git+https://github.com/constant-itis/mycelium-memory      # cleanest
+# OR:
+pip install --user git+https://github.com/constant-itis/mycelium-memory # if no pipx
+# OR for development:
+git clone https://github.com/constant-itis/mycelium-memory && cd mycelium-memory && pip install -e .
+
+# 2. Verify the install (uses a throwaway temp dir; touches nothing else).
+bash scripts/smoke-test.sh                                  # repo clone path
+# OR if installed via pipx/pip, fetch and run:
+curl -sL https://raw.githubusercontent.com/constant-itis/mycelium-memory/main/scripts/smoke-test.sh | bash
+
+# 3. Wire into Claude Code (stdio — recommended for single-machine use).
+claude mcp add mycelium -- mycelium serve
+
+# 4. Open Claude Code. The tools (save, recall, context, log_decision, ...)
+#    are now available. Try: "remember that I prefer kebab-case for filenames"
 ```
 
-Uses a throwaway temp dir — touches no user state.
+**On Debian/Ubuntu 23+ / Fedora 38+** you may hit `error: externally-managed-environment`.
+Use `pipx` (preferred) or add `--break-system-packages` to the `pip` command
+(safe with `--user`).
+
+**Make sure `~/.local/bin` is on `$PATH`** if you used `pip install --user` —
+that's where the `mycelium` script lands.
+
+### Optional: customize the config
+
+```bash
+mycelium init                  # copy config.example.toml to ~/.mycelium/config.toml
+mycelium config                # print the effective config (defaults + your overrides)
+```
+
+You don't need this to get started — sensible defaults are baked in.
+
+### Optional: remote / multi-machine
+
+```bash
+mycelium serve --transport http --port 8200 &
+claude mcp add mycelium --transport http http://YOUR_HOST:8200/mcp
+```
+
+### Optional but recommended: the CLAUDE.md primer
+
+Drop [docs/claude-md-primer.md](docs/claude-md-primer.md) into your own
+`CLAUDE.md` so Claude follows a consistent ritual (when to save, what *not*
+to save, project-field convention, consolidate/pin/discover usage, foundry
+patterns). The MCP server already sends a basic `instructions=` block, but
+the primer is the longer opinionated guide.
 
 ## Tools
 
