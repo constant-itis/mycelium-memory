@@ -10,6 +10,12 @@ SQLite + FTS5, two memory cards in one install:
 
 Zero external services. One install. One TOML config. Two SQLite files.
 
+> **New here?** Read [docs/concepts.md](docs/concepts.md) first — it's the
+> "read this once and you understand the whole system" doc. Covers what
+> memories/connections/decay/tiers/pinning/confidence/resolvers/checkpoints
+> all are, what each MCP tool is *for*, and the gardener-not-librarian
+> mental model. ~10 minutes.
+
 ## Easiest path: have Claude do it for you
 
 You already have Claude Code installed (it's how you'll use this). Paste the
