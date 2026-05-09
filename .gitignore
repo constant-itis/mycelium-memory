@@ -1,0 +1,30 @@
+# build
+*.egg-info/
+build/
+dist/
+__pycache__/
+*.pyc
+
+# venv
+.venv/
+venv/
+
+# local data (user installs)
+*.db
+*.db-wal
+*.db-shm
+.mycelium/
+
+# extraction staging — never commit
+_source/
+
+# editor
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# tests
+.pytest_cache/
+.coverage
+htmlcov/

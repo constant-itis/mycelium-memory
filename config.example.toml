@@ -1,0 +1,46 @@
+# Mycelium configuration — copy this file to ~/.mycelium/config.toml
+# (or $XDG_CONFIG_HOME/mycelium/config.toml) and edit as needed.
+#
+# Resolution order: CLI args > env vars > this file > built-in defaults.
+# Env var pattern: MYCELIUM_<SECTION>_<KEY>  (e.g. MYCELIUM_SERVER_PORT=9000)
+# All paths support ~ expansion.
+
+[server]
+host = "127.0.0.1"
+port = 8200
+transport = "stdio"        # "stdio" | "http"
+log_level = "info"         # "debug" | "info" | "warning" | "error"
+
+[storage]
+db_path = "~/.mycelium/memory.db"
+backup_dir = "~/.mycelium/backups"
+
+[memory]
+# Semantic-card behavior. Defaults are sensible for a single-user install.
+decay_tau_days = 30.0          # exponential decay time constant for connections
+prune_threshold = 0.05         # connections weaker than this get pruned
+auto_connect_limit = 5         # max auto-connections created on save
+hub_limit = 15                 # max hub memories returned by context()
+recall_propagate = 8           # max neighbors to propagate per recall hit
+consolidation_threshold = 10   # nudge to consolidate above this hot-memory count per project
+pinned_decay_floor = 0.5       # pinned memories' connections never decay below this
+
+# Optional: keyword clusters for the discover() pass.
+# Memories sharing any of these keywords get auto-linked. Add your own
+# domain terms (vendor names, project codenames, etc.) — leave empty to skip
+# the keyword-cluster pass.
+keyword_clusters = []
+# Example:
+# keyword_clusters = ["acme corp", "northwind", "contoso"]
+
+[foundry]
+# Behavioral memory — append-only decision log.
+enabled = true
+log_dir = "~/.mycelium/foundry/logs"   # JSONL files; publisher writes here, ingest drains
+db_path = "~/.mycelium/foundry.db"     # separate SQLite from semantic memory
+ingest_interval_seconds = 0            # 0 = manual; >0 = run drain loop in background
+
+[foundry.retention]
+# Optional cleanup. Set to 0 to disable.
+max_rows = 0           # 0 = unlimited
+max_age_days = 0       # 0 = no age limit

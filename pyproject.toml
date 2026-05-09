@@ -1,0 +1,34 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mycelium-memory"
+version = "0.1.0"
+description = "Persistent neural-style memory for Claude Code (MCP server)"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "mycelium contributors" }]
+keywords = ["mcp", "memory", "claude", "claude-code", "sqlite"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "mcp[cli]>=1.0",
+]
+
+[project.optional-dependencies]
+dev = ["pytest>=7", "pytest-cov"]
+
+[project.scripts]
+mycelium = "mycelium.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["mycelium*"]
+exclude = ["_source*", "tests*", "scripts*"]
