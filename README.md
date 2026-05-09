@@ -56,8 +56,8 @@ Plus two slash-skill conventions and a short-term memory hook for Claude Code:
 
 https://github.com/user-attachments/assets/2a274f61-24e8-4eed-82a2-f3dbe75126cd
 
-Save a few facts → `/clear` → fresh session pulls them right back via
-`context()` and `recall()`. ~50 seconds.
+Save a fact → `/checkpoint` → `/clear` → fresh session pulls it right back
+via `context()` and `recall()`. ~50 seconds.
 
 If you'd rather read it as a transcript:
 
