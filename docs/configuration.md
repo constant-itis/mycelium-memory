@@ -91,6 +91,35 @@ Optional cleanup. `0` means unlimited.
 (Retention enforcement is a planned background pass — for now these are no-ops
 unless you wire your own cleanup.)
 
+## `[semantic]`
+
+Optional semantic recall. Off by default and dependency-free when off. Set
+`embed_url` to any OpenAI-compatible `/v1/embeddings` endpoint and `recall()`
+becomes hybrid — keyword (FTS5) **plus** embedding similarity — so it can match
+memories by meaning, not just shared words. Unset, recall behaves exactly as
+before and no embedding calls are made. Run `mycelium backfill-vectors` once
+after enabling; new memories are embedded automatically on save.
+
+| Key | Default | What it does | When to change |
+|---|---|---|---|
+| `embed_url` | `""` | OpenAI-compatible embeddings endpoint. **Empty = semantic recall disabled.** | Set to e.g. `http://localhost:11434/v1/embeddings` (Ollama), LM Studio, llama.cpp `--embedding`, or a cloud provider. |
+| `embed_model` | `"nomic-embed-text"` | Model name sent to the endpoint; also selects query/document prompt prefixes. | Match whatever your endpoint serves (`nomic-embed-text`, `embeddinggemma`, `bge-*`, `text-embedding-3-small`, ...). |
+| `weight` | `10.0` | How strongly cosine similarity drives ranking relative to keyword coverage. | Lower toward `3` if semantic results crowd out exact keyword hits; raise for more meaning-driven ranking. |
+| `top_k` | `15` | How many semantically-nearest memories are merged into the recall pool. | Raise for wider semantic reach; lower for tighter, faster recall. |
+| `chunk_chars` | `1400` | Long memories are split into chunks of this size and mean-pooled into one stored vector. | Lower if your embedding model has a small context window. |
+| `timeout_seconds` | `5` | Per embed HTTP call. Recall/save fall back gracefully if exceeded. | Raise on a slow/remote endpoint; the trade-off is slower recall/save. |
+
+```toml
+[semantic]
+embed_url = "http://localhost:11434/v1/embeddings"
+embed_model = "nomic-embed-text"
+```
+
+**Graceful by design:** if the endpoint is unreachable at runtime, recall
+silently falls back to pure keyword search. `numpy` is used for the similarity
+search only if it's already installed; otherwise a pure-Python path runs — it is
+never a required dependency.
+
 ---
 
 ## Tuning by symptom
@@ -98,6 +127,7 @@ unless you wire your own cleanup.)
 | Symptom | Knob to try |
 |---|---|
 | `recall()` keeps missing memories you remember | Lower `prune_threshold`, raise `decay_tau_days`, raise `recall_propagate` |
+| `recall()` misses paraphrased / synonym queries (right idea, different words) | Enable semantic recall — set `[semantic] embed_url`, then `mycelium backfill-vectors` |
 | `context()` output is overwhelming | Lower `hub_limit` |
 | `save()` keeps complaining about duplicates I want anyway | Pass `force=True`, or revisit your save granularity |
 | The DB is bloating | Raise `prune_threshold`, lower `decay_tau_days`, run `discover()` + `consolidate()` more often |
