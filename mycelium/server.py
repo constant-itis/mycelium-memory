@@ -24,6 +24,7 @@ from pathlib import Path
 from mcp.server.fastmcp import FastMCP
 
 from . import config as _config
+from . import embeddings as _embed
 from . import maintain as _maintain
 from .foundry import publish as foundry_publish
 from .foundry import ingest as foundry_ingest
@@ -170,6 +171,14 @@ def _init_schema(conn: sqlite3.Connection) -> None:
             computed_at TEXT NOT NULL,
             UNIQUE(week_start)
         );
+
+        CREATE TABLE IF NOT EXISTS memory_vectors (
+            memory_id INTEGER PRIMARY KEY REFERENCES memories(id) ON DELETE CASCADE,
+            dim       INTEGER NOT NULL,
+            model     TEXT    NOT NULL,
+            vec       BLOB    NOT NULL,
+            updated   TEXT    NOT NULL
+        );
     """)
     conn.commit()
 
@@ -177,6 +186,74 @@ def _init_schema(conn: sqlite3.Connection) -> None:
 # ----- helpers -----
 def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
+
+
+# ----- semantic recall (optional; active only when [semantic] embed_url set) -----
+def _semantic_sims(conn: sqlite3.Connection, qvec) -> dict:
+    """{memory_id: cosine} over stored vectors. {} on any failure so recall
+    degrades cleanly to pure lexical."""
+    try:
+        rows = conn.execute("SELECT memory_id, vec FROM memory_vectors").fetchall()
+        return _embed.cosine_sims(qvec, [(r["memory_id"], r["vec"]) for r in rows])
+    except Exception:
+        return {}
+
+
+def _embed_memory(conn: sqlite3.Connection, memory_id: int, content: str) -> bool:
+    """Best-effort: embed one memory and upsert its vector. Never raises."""
+    sem = _cfg().semantic
+    if not sem.get("embed_url"):
+        return False
+    try:
+        v = _embed.embed_document(
+            content or "",
+            url=sem["embed_url"],
+            model=sem["embed_model"],
+            chunk_chars=int(sem["chunk_chars"]),
+            timeout=float(sem["timeout_seconds"]),
+        )
+        conn.execute(
+            "INSERT OR REPLACE INTO memory_vectors (memory_id, dim, model, vec, updated) "
+            "VALUES (?,?,?,?,?)",
+            (memory_id, len(v), sem["embed_model"], _embed.to_blob(v), _now()),
+        )
+        return True
+    except Exception:
+        return False  # memory still saved; backfill can fill the vector later
+
+
+def backfill_vectors(reembed: bool = False) -> dict:
+    """Embed all memories into memory_vectors. Idempotent + resumable: skips
+    memories already embedded for the current model unless reembed=True."""
+    sem = _cfg().semantic
+    if not sem.get("embed_url"):
+        raise RuntimeError("[semantic] embed_url is not configured")
+    conn = get_db()
+    rows = conn.execute("SELECT id, content FROM memories").fetchall()
+    done: set[int] = set()
+    if not reembed:
+        done = {
+            r[0]
+            for r in conn.execute(
+                "SELECT memory_id FROM memory_vectors WHERE model=?", (sem["embed_model"],)
+            )
+        }
+    ok = fail = 0
+    for r in rows:
+        if r["id"] in done:
+            continue
+        if _embed_memory(conn, r["id"], r["content"]):
+            ok += 1
+        else:
+            fail += 1
+        if (ok + fail) % 100 == 0:
+            conn.commit()
+    conn.commit()
+    total = conn.execute(
+        "SELECT COUNT(*) FROM memory_vectors WHERE model=?", (sem["embed_model"],)
+    ).fetchone()[0]
+    conn.close()
+    return {"embedded": ok, "failed": fail, "total": total, "memories": len(rows)}
 
 
 def _decay_strength(strength: float, last_activated: str) -> float:
@@ -560,6 +637,12 @@ def save(
 
     conn.commit()
 
+    # Embed-on-save (optional, best-effort) so new memories are immediately
+    # reachable by semantic recall. Never blocks meaningfully or fails the save.
+    if _cfg().semantic.get("embed_url"):
+        if _embed_memory(conn, new_id, content):
+            conn.commit()
+
     lines = [f"Saved #{new_id}"]
     if project:
         lines[0] += f" ({project})"
@@ -655,6 +738,35 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
         ).fetchall()
         results = [dict(r) for r in results]
 
+    # Semantic arm (optional). Merges the top semantically-similar memories into
+    # the candidate pool so meaning-based queries reach memories that share no
+    # keywords. `sims` (id -> cosine) is reused below as a primary score term.
+    # Any failure (endpoint down, etc.) leaves sims empty -> pure lexical.
+    sem = _cfg().semantic
+    sims: dict = {}
+    if sem.get("embed_url"):
+        try:
+            qvec = _embed.embed_query(
+                query, url=sem["embed_url"], model=sem["embed_model"],
+                timeout=float(sem["timeout_seconds"]),
+            )
+            sims = _semantic_sims(conn, qvec)
+        except Exception:
+            sims = {}
+    if sims:
+        have = {r["id"] for r in results}
+        for mid, _cos in sorted(sims.items(), key=lambda kv: -kv[1])[: int(sem["top_k"])]:
+            if mid in have:
+                continue
+            row = conn.execute(
+                "SELECT id, content, project, tier, access_count, created, last_accessed "
+                "FROM memories WHERE id=?",
+                (mid,),
+            ).fetchone()
+            if row:
+                results.append(dict(row))
+                have.add(mid)
+
     if not results:
         conn.close()
         return "No memories found."
@@ -687,7 +799,10 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
                 recency_boost = 0.3 * math.exp(-days_old / 3.0)
             except (ValueError, TypeError):
                 pass
-        return coverage + access_boost + recency_boost
+        # Semantic similarity as a primary ranking signal (semantic-led). 0 when
+        # disabled or the memory has no vector, so lexical behavior is unchanged.
+        semantic_boost = float(sem["weight"]) * sims.get(memory["id"], 0.0) if sims else 0.0
+        return coverage + access_boost + recency_boost + semantic_boost
 
     pool: dict[int, tuple[dict, float, str]] = {}
     for r in results:

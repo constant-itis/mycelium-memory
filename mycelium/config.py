@@ -42,6 +42,16 @@ DEFAULTS: dict[str, Any] = {
         "ingest_interval_seconds": 0,
         "retention": {"max_rows": 0, "max_age_days": 0},
     },
+    "semantic": {
+        # Optional semantic-recall arm. Disabled while embed_url is empty —
+        # recall stays pure-lexical (FTS5) and no embedding calls are made.
+        "embed_url": "",                # any OpenAI-compatible /v1/embeddings
+        "embed_model": "nomic-embed-text",
+        "weight": 10.0,                 # cosine multiplier in recall scoring
+        "top_k": 15,                    # semantic candidates merged into the pool
+        "chunk_chars": 1400,            # long-content chunk size before mean-pool
+        "timeout_seconds": 5,           # per embed call; keep recall/save snappy
+    },
 }
 
 
@@ -134,7 +144,12 @@ class Config:
     storage: dict
     memory: dict
     foundry: dict
+    semantic: dict
     source: str  # "defaults" | "<path-to-toml>"
+
+    @property
+    def semantic_enabled(self) -> bool:
+        return bool(self.semantic.get("embed_url"))
 
     @property
     def db_path(self) -> Path:
@@ -154,6 +169,7 @@ class Config:
             "storage": self.storage,
             "memory": self.memory,
             "foundry": self.foundry,
+            "semantic": self.semantic,
         }
 
 
@@ -165,6 +181,7 @@ def load(config_path: str | None = None) -> Config:
     cfg = {k: (dict(v) if isinstance(v, dict) else v) for k, v in DEFAULTS.items()}
     # deep-copy nested dicts
     cfg["foundry"]["retention"] = dict(DEFAULTS["foundry"]["retention"])
+    cfg["semantic"] = dict(DEFAULTS["semantic"])
 
     explicit = config_path or os.environ.get("MYCELIUM_CONFIG")
     found_path: Path | None = None
@@ -184,5 +201,6 @@ def load(config_path: str | None = None) -> Config:
         storage=cfg["storage"],
         memory=cfg["memory"],
         foundry=cfg["foundry"],
+        semantic=cfg["semantic"],
         source=str(found_path) if found_path else "defaults",
     )

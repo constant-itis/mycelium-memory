@@ -93,6 +93,21 @@ def _cmd_config(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_backfill_vectors(args: argparse.Namespace) -> int:
+    from . import server
+    server.set_config(_config.load(args.config))
+    try:
+        r = server.backfill_vectors(reembed=args.reembed)
+    except RuntimeError as e:
+        print(f"error: {e}", file=sys.stderr)
+        print("set [semantic] embed_url in your config first (see config.example.toml).",
+              file=sys.stderr)
+        return 1
+    print(f"embedded {r['embedded']}, failed {r['failed']}; "
+          f"{r['total']}/{r['memories']} memories have vectors")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="mycelium", description="Mycelium memory MCP server")
     p.add_argument("--config", help="path to config.toml (overrides search paths)")
@@ -111,6 +126,14 @@ def main(argv: list[str] | None = None) -> int:
 
     cfg_cmd = sub.add_parser("config", help="print effective config")
     cfg_cmd.set_defaults(func=_cmd_config)
+
+    bv = sub.add_parser(
+        "backfill-vectors",
+        help="embed all memories for semantic recall (requires [semantic] embed_url)",
+    )
+    bv.add_argument("--reembed", action="store_true",
+                    help="re-embed even memories that already have a vector")
+    bv.set_defaults(func=_cmd_backfill_vectors)
 
     m = sub.add_parser("maintain", help="snapshot + cold-mark + orphan rescue (dry-run by default)")
     m.add_argument("--execute", action="store_true", help="apply the plan (default is dry-run)")

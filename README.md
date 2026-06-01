@@ -204,6 +204,39 @@ mycelium serve --transport http --port 8200 &
 > `127.0.0.1` for one machine, or to a private interface (Tailscale, LAN)
 > for trusted multi-machine. Don't expose it to the public internet.
 
+## Optional: semantic recall
+
+By default, recall is lexical (SQLite FTS5) — fast, zero-dependency, and it
+matches on keywords. If you also point mycelium at an embedding endpoint, recall
+becomes **hybrid**: it additionally finds memories by *meaning*, so a query like
+"how does the token refresh work" can surface a note about "OAuth credential
+renewal" even with no shared words.
+
+This is **off by default** and adds **no dependency** — set one config value to
+turn it on, leave it unset and nothing changes.
+
+```toml
+# ~/.mycelium/config.toml
+[semantic]
+embed_url = "http://localhost:11434/v1/embeddings"   # any OpenAI-compatible endpoint
+embed_model = "nomic-embed-text"
+```
+
+Works with anything that speaks the OpenAI `/v1/embeddings` API — **Ollama**
+(`ollama pull nomic-embed-text`), LM Studio, llama.cpp `--embedding`, or a cloud
+provider. Then embed your existing memories once:
+
+```bash
+mycelium backfill-vectors      # new memories are embedded automatically on save
+```
+
+Notes:
+- Graceful: if the endpoint is unreachable, recall silently falls back to lexical.
+- `numpy` is used for the similarity search only if it happens to be installed;
+  otherwise a pure-Python path is used. Not a required dependency.
+- Tunables live under `[semantic]` (see `config.example.toml`): `weight`,
+  `top_k`, `chunk_chars`, `timeout_seconds`.
+
 ## Backups
 
 Your data lives in `~/.mycelium/memory.db` (semantic) and
