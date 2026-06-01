@@ -33,6 +33,8 @@ Two memory systems in one install:
 - **Semantic memory** — the durable "what I know" store. Save observations,
   decisions, project facts, conventions. Recall them later by natural-language
   query. Connections form automatically through co-access; unused paths decay.
+  Recall is keyword-based out of the box; optionally enable
+  [semantic recall](#optional-semantic-recall) to also match by *meaning*.
 - **Behavioral memory (foundry)** — append-only log of decisions. "Picked the
   cheaper model tier for this prompt size." Queryable later for pattern
   analysis or training-data extraction. Optional; turn off if unused.
