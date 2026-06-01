@@ -44,3 +44,19 @@ ingest_interval_seconds = 0            # 0 = manual; >0 = run drain loop in back
 # Optional cleanup. Set to 0 to disable.
 max_rows = 0           # 0 = unlimited
 max_age_days = 0       # 0 = no age limit
+
+[semantic]
+# OPTIONAL semantic recall. Off by default — mycelium's core is pure SQLite+FTS5
+# with no extra dependency. Set embed_url to ANY OpenAI-compatible /v1/embeddings
+# endpoint to enable hybrid (keyword + meaning) recall. When unset, recall behaves
+# exactly as before and no embedding calls are made.
+#
+# Local options (recommended): Ollama -> "http://localhost:11434/v1/embeddings"
+#   (`ollama pull nomic-embed-text`), LM Studio, or llama.cpp --embedding.
+# After enabling, backfill existing memories once:  mycelium backfill-vectors
+embed_url = ""                         # e.g. "http://localhost:11434/v1/embeddings"
+embed_model = "nomic-embed-text"       # nomic-embed-text | embeddinggemma | bge-* | text-embedding-3-small ...
+weight = 10.0                          # how strongly cosine similarity drives ranking
+top_k = 15                             # semantic candidates merged into the recall pool
+chunk_chars = 1400                     # long memories are chunked + mean-pooled under this
+timeout_seconds = 5                    # per embed call; keeps recall/save responsive
