@@ -93,6 +93,20 @@ def _cmd_config(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_eval(args: argparse.Namespace) -> int:
+    import json as _json
+    import os
+    from . import evaluate
+    if args.config:
+        os.environ["MYCELIUM_CONFIG"] = args.config
+    result = evaluate.run_eval(dataset_path=args.dataset)
+    if args.json:
+        print(_json.dumps(result, indent=2))
+    else:
+        print(evaluate.format_report(result))
+    return 0
+
+
 def _cmd_backfill_vectors(args: argparse.Namespace) -> int:
     from . import server
     server.set_config(_config.load(args.config))
@@ -134,6 +148,15 @@ def main(argv: list[str] | None = None) -> int:
     bv.add_argument("--reembed", action="store_true",
                     help="re-embed even memories that already have a vector")
     bv.set_defaults(func=_cmd_backfill_vectors)
+
+    ev = sub.add_parser(
+        "eval",
+        help="benchmark lexical vs semantic recall on a dataset (bundled sample by default)",
+    )
+    ev.add_argument("--dataset",
+                    help="path to a {memories, queries} JSON file (default: bundled sample)")
+    ev.add_argument("--json", action="store_true", help="machine-readable output")
+    ev.set_defaults(func=_cmd_eval)
 
     m = sub.add_parser("maintain", help="snapshot + cold-mark + orphan rescue (dry-run by default)")
     m.add_argument("--execute", action="store_true", help="apply the plan (default is dry-run)")

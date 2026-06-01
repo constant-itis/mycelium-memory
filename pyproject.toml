@@ -32,3 +32,6 @@ mycelium = "mycelium.cli:main"
 [tool.setuptools.packages.find]
 include = ["mycelium*"]
 exclude = ["_source*", "tests*", "scripts*"]
+
+[tool.setuptools.package-data]
+mycelium = ["eval_data/*.json"]

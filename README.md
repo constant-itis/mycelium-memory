@@ -232,6 +232,10 @@ provider. Then embed your existing memories once:
 mycelium backfill-vectors      # new memories are embedded automatically on save
 ```
 
+**Not sure it's worth it for your data?** Benchmark it — `mycelium eval` measures
+recall with semantic off vs on (bundled sample, or `--dataset yours.json`). See
+[docs/benchmarks.md](docs/benchmarks.md) for the decision guide and how to tune.
+
 Notes:
 - Graceful: if the endpoint is unreachable, recall silently falls back to lexical.
 - `numpy` is used for the similarity search only if it happens to be installed;
