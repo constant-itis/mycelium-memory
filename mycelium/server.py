@@ -13,11 +13,15 @@ All knobs live in config (see config.example.toml). Run:
 from __future__ import annotations
 
 import contextvars
+import functools
+import inspect
 import json
 import math
+import random
 import re
 import sqlite3
 import threading
+import time
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
@@ -57,6 +61,14 @@ _schema_initialized = False
 _schema_lock = threading.Lock()
 
 
+# Every @mcp.tool() is wrapped by @resilient, which tracks each connection opened
+# during a call in this thread-local and force-rolls-back + closes them in a
+# finally — so a handler that throws mid-write can never leak an open write
+# transaction that jams the whole DB — and retries transient SQLITE_BUSY/locked/
+# malformed with backoff. Concurrent clients WAIT for the lock instead of colliding.
+_conn_registry = threading.local()
+
+
 def get_db() -> sqlite3.Connection:
     global _schema_initialized
     db_path = _cfg().db_path
@@ -65,13 +77,81 @@ def get_db() -> sqlite3.Connection:
     conn.row_factory = sqlite3.Row
     conn.execute("PRAGMA journal_mode=WAL")
     conn.execute("PRAGMA foreign_keys=ON")
-    conn.execute("PRAGMA busy_timeout=5000")
+    conn.execute("PRAGMA busy_timeout=15000")  # wait up to 15s for a lock before erroring
     if not _schema_initialized:
         with _schema_lock:
             if not _schema_initialized:
                 _init_schema(conn)
                 _schema_initialized = True
+    bucket = getattr(_conn_registry, "conns", None)
+    if bucket is not None:
+        bucket.append(conn)
     return conn
+
+
+def resilient(fn):
+    """Wrap an MCP tool with a connection-cleanup net + transient-error retry.
+
+    Cleanup net: any connection get_db() hands out during the call is force
+    rolled-back and closed in a finally, so an exception between a write and its
+    commit can never leave an open write transaction holding the WAL lock (the
+    historical cause of total 'database is locked' jams). Double close/rollback
+    against a handler that already cleaned up itself is harmless.
+
+    Retry: SQLITE_BUSY / 'database is locked' -> exponential backoff (writers
+    normally just wait on busy_timeout, so this only fires under extreme
+    contention); 'database disk image is malformed' -> short retry (a transient
+    FTS-read-in-write-txn artifact, not corruption). Other sqlite errors (e.g. a
+    FK race when another client deletes a memory mid-call) soft-fail to a friendly
+    string so the tool never crashes the caller.
+    """
+    @functools.wraps(fn)
+    def wrapper(*args, **kwargs):
+        delay = 0.25
+        last_exc = None
+        for attempt in range(6):
+            _conn_registry.conns = []
+            try:
+                return fn(*args, **kwargs)
+            except sqlite3.OperationalError as e:
+                last_exc = e
+                msg = str(e).lower()
+                if "locked" in msg or "busy" in msg:
+                    time.sleep(delay + random.random() * 0.1)
+                    delay = min(delay * 2, 4.0)
+                    continue
+                return f"⚠️ mycelium: operation could not complete. [{e}]"
+            except sqlite3.IntegrityError as e:
+                return (
+                    "⚠️ mycelium: operation skipped — a referenced memory changed "
+                    f"concurrently. [{e}]"
+                )
+            except sqlite3.DatabaseError as e:
+                last_exc = e
+                if "malformed" in str(e).lower() and attempt < 2:
+                    time.sleep(0.15)
+                    continue
+                return f"⚠️ mycelium: database error, operation skipped. [{e}]"
+            finally:
+                for c in getattr(_conn_registry, "conns", ()):
+                    try:
+                        c.rollback()
+                    except Exception:
+                        pass
+                    try:
+                        c.close()
+                    except Exception:
+                        pass
+                _conn_registry.conns = []
+        return (
+            "⚠️ mycelium is busy (database contention) — the write could not "
+            f"complete after several retries. Try again in a moment. [{last_exc}]"
+        )
+    try:
+        wrapper.__signature__ = inspect.signature(fn)
+    except (ValueError, TypeError):
+        pass
+    return wrapper
 
 
 def _init_schema(conn: sqlite3.Connection) -> None:
@@ -188,7 +268,26 @@ def _decay_strength(strength: float, last_activated: str) -> float:
         return strength
 
 
-def _apply_decay(conn: sqlite3.Connection) -> int:
+_decay_lock = threading.Lock()
+_last_decay_ts = 0.0
+_DECAY_MIN_INTERVAL = 300.0  # seconds — decay is a slow background sweep, not a per-call cost
+
+
+def _apply_decay(conn: sqlite3.Connection, force: bool = False) -> int:
+    """Apply decay to all connections, prune dead ones. Pinned memories get a floor.
+
+    THROTTLED: this used to run a full-table rewrite of the connections graph on
+    every recall/context call, which — as the graph grew and client parallelism
+    increased — made every read a heavy long-held write and was the primary source
+    of lock contention. It now runs at most once per _DECAY_MIN_INTERVAL.
+    """
+    global _last_decay_ts
+    if not force:
+        now_mono = time.monotonic()
+        with _decay_lock:
+            if now_mono - _last_decay_ts < _DECAY_MIN_INTERVAL:
+                return 0
+            _last_decay_ts = now_mono
     cfg_mem = _cfg().memory
     prune_threshold = cfg_mem["prune_threshold"]
     pinned_floor = cfg_mem["pinned_decay_floor"]
@@ -215,6 +314,12 @@ def _apply_decay(conn: sqlite3.Connection) -> int:
             "UPDATE connections SET strength=? WHERE source=? AND target=?", to_update
         )
     conn.commit()
+    # Piggyback WAL maintenance on the (now infrequent) decay sweep so the -wal
+    # file can't grow unbounded when long-lived readers pin the checkpoint.
+    try:
+        conn.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+    except sqlite3.OperationalError:
+        pass
     return len(to_prune)
 
 
@@ -482,6 +587,7 @@ def _check_duplicates(conn, content: str, project: str = "", threshold: float = 
 
 
 @mcp.tool()
+@resilient
 def save(
     content: str,
     project: str = "",
@@ -587,6 +693,7 @@ def save(
 
 
 @mcp.tool()
+@resilient
 def resolve(term: str, meanings: str) -> str:
     """Create a disambiguation memory for an ambiguous term.
 
@@ -627,6 +734,7 @@ def resolve(term: str, meanings: str) -> str:
 
 
 @mcp.tool()
+@resilient
 def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> str:
     """Search memories and propagate through connections.
 
@@ -742,6 +850,7 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
 
 
 @mcp.tool()
+@resilient
 def context(project: str = "", agent: str = "") -> str:
     """Load startup context — the hubs of your memory network.
 
@@ -835,6 +944,7 @@ def context(project: str = "", agent: str = "") -> str:
 
 
 @mcp.tool()
+@resilient
 def review() -> str:
     """Review the health of the memory network.
 
@@ -891,6 +1001,7 @@ def review() -> str:
 
 
 @mcp.tool()
+@resilient
 def consolidate(project: str = "", memory_ids: list[int] | None = None) -> str:
     """Show memories ready for consolidation.
 
@@ -930,6 +1041,7 @@ def consolidate(project: str = "", memory_ids: list[int] | None = None) -> str:
 
 
 @mcp.tool()
+@resilient
 def discover() -> str:
     """Discover hidden connections in the memory network.
 
@@ -1061,6 +1173,7 @@ def discover() -> str:
 
 
 @mcp.tool()
+@resilient
 def forget(memory_id: int) -> str:
     """Delete a memory and all its connections."""
     conn = get_db()
@@ -1075,6 +1188,7 @@ def forget(memory_id: int) -> str:
 
 
 @mcp.tool()
+@resilient
 def pin(memory_id: int, unpin: bool = False) -> str:
     """Pin or unpin a memory. Pinned memories' connections never decay below the
     configured pinned_decay_floor.
@@ -1094,6 +1208,7 @@ def pin(memory_id: int, unpin: bool = False) -> str:
 
 
 @mcp.tool()
+@resilient
 def maintain(
     execute: bool = False,
     recent_days: int = 7,
@@ -1123,6 +1238,7 @@ def maintain(
 
 
 @mcp.tool()
+@resilient
 def connections(memory_id: int) -> str:
     """Show all connections for a specific memory — the local network topology."""
     conn = get_db()
@@ -1147,6 +1263,7 @@ def connections(memory_id: int) -> str:
 if _cfg().foundry.get("enabled", True):
 
     @mcp.tool()
+    @resilient
     def log_decision(
         decision_point: str,
         agent: str,
@@ -1180,6 +1297,7 @@ if _cfg().foundry.get("enabled", True):
         return "ok" if ok else "skipped"
 
     @mcp.tool()
+    @resilient
     def query_decisions(
         agent: str = "",
         decision_point: str = "",
