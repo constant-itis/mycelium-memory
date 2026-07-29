@@ -156,6 +156,7 @@ In rough order of "what new users do next":
 | Have Claude follow consistent rituals | [docs/claude-md-primer.md](docs/claude-md-primer.md) — paste into your CLAUDE.md |
 | Bootstrap with existing material | [docs/seeding.md](docs/seeding.md) — paste-prompts for seeding from CLAUDE.md, project trees, notes, shell history |
 | Tune behavior or change paths | [docs/configuration.md](docs/configuration.md) |
+| Offload memory upkeep to a local model | [docs/local-llm-maintenance.md](docs/local-llm-maintenance.md) — draft consolidation summaries with a local LLM, human-verified before deletion |
 | Hook up Claude Desktop, Codex, or another MCP client | [Multi-client setup](#multi-client-and-other-mcp-clients), below |
 | Read the longer thinking behind this | [docs/research/](docs/research/) — paper-form notes on memory governance for long-running agent systems |
 
