@@ -1115,6 +1115,42 @@ def review() -> str:
     return "\n".join(lines)
 
 
+# --- forget-safety guard (substrate-level; no caller can bypass) -------------
+_PROTECT_INDEX_MARKERS = ("PROJECT INDEX", "[consolidated-current-state]",
+                          "do not supersede")
+
+
+def _protection_reason(row, confidence_floor: float = 0.8, recent_days: int = 7):
+    """Why a memory must NOT be auto-forgotten, or None if it is fair game.
+
+    Guards load-bearing memory against autonomous consolidation agents: pinned
+    (flag or [pinned] tag), high confidence, recently accessed, or a project
+    index / consolidated anchor. `row` is a sqlite3.Row selecting at least
+    content, pinned, confidence, last_accessed.
+    """
+    from datetime import datetime, timedelta, timezone
+    keys = row.keys()
+    content = (row["content"] if "content" in keys else "") or ""
+    if ("pinned" in keys and row["pinned"] == 1) or "[pinned]" in content:
+        return "pinned"
+    if ("confidence" in keys and row["confidence"] is not None
+            and row["confidence"] >= confidence_floor):
+        return f"confidence>={confidence_floor}"
+    la = row["last_accessed"] if "last_accessed" in keys else None
+    if la:
+        try:
+            dt = datetime.fromisoformat(str(la).replace("Z", "+00:00"))
+            if dt.tzinfo is None:
+                dt = dt.replace(tzinfo=timezone.utc)
+            if dt >= datetime.now(timezone.utc) - timedelta(days=recent_days):
+                return f"accessed<{recent_days}d"
+        except (ValueError, TypeError):
+            pass
+    if any(mk in content for mk in _PROTECT_INDEX_MARKERS):
+        return "index/anchor/do-not-supersede"
+    return None
+
+
 @mcp.tool()
 @resilient
 def consolidate(project: str = "", memory_ids: list[int] | None = None) -> str:
@@ -1122,19 +1158,24 @@ def consolidate(project: str = "", memory_ids: list[int] | None = None) -> str:
 
     Pass a project to see all hot memories for that project, or specific ids.
     Synthesize them by calling save() with the summary, then forget() the originals.
+    Protected memories (pinned / high-confidence / recently accessed / index)
+    are excluded from the candidate list at the substrate layer, so an
+    autonomous pass can never summarise-then-forget load-bearing memory.
     """
     conn = get_db()
+    cols = ("id, content, project, tier, access_count, created, "
+            "pinned, confidence, last_accessed")
     if memory_ids:
         placeholders = ",".join("?" * len(memory_ids))
         rows = conn.execute(
-            f"SELECT id, content, project, tier, access_count, created "
-            f"FROM memories WHERE id IN ({placeholders}) ORDER BY created ASC",
+            f"SELECT {cols} FROM memories WHERE id IN ({placeholders}) "
+            f"ORDER BY created ASC",
             memory_ids,
         ).fetchall()
     elif project:
         rows = conn.execute(
-            "SELECT id, content, project, tier, access_count, created "
-            "FROM memories WHERE project=? AND tier='hot' ORDER BY created ASC",
+            f"SELECT {cols} FROM memories WHERE project=? AND tier='hot' "
+            f"ORDER BY created ASC",
             (project,),
         ).fetchall()
     else:
@@ -1145,11 +1186,21 @@ def consolidate(project: str = "", memory_ids: list[int] | None = None) -> str:
         conn.close()
         return "No memories found to consolidate."
 
-    lines = [f"## Consolidation candidates ({len(rows)} memories)"]
+    candidates, protected = [], []
+    for r in rows:
+        (protected if _protection_reason(r) else candidates).append(r)
+
+    if not candidates:
+        conn.close()
+        return (f"No consolidation candidates "
+                f"({len(protected)} protected memories excluded).")
+
+    lines = [f"## Consolidation candidates ({len(candidates)} memories; "
+             f"{len(protected)} protected excluded)"]
     lines.append("Review these, then:")
     lines.append("1. Call save() with a synthesized summary (becomes a cold memory)")
     lines.append("2. Call forget() on the originals you've absorbed\n")
-    for r in rows:
+    for r in candidates:
         lines.append(f"  [#{r['id']}] ({r['created'][:10]}) {r['content']}")
     conn.close()
     return "\n".join(lines)
@@ -1289,13 +1340,28 @@ def discover() -> str:
 
 @mcp.tool()
 @resilient
-def forget(memory_id: int) -> str:
-    """Delete a memory and all its connections."""
+def forget(memory_id: int, override: bool = False) -> str:
+    """Delete a memory and all its connections.
+
+    Refuses to delete a PROTECTED memory (pinned / high-confidence / recently
+    accessed / project-index) unless override=True. The guard lives here in the
+    substrate so no caller — including an autonomous consolidation agent — can
+    delete load-bearing memory by mistake. Pass override=True only after you
+    have confirmed the memory's content is captured elsewhere.
+    """
     conn = get_db()
-    row = conn.execute("SELECT content FROM memories WHERE id=?", (memory_id,)).fetchone()
+    row = conn.execute(
+        "SELECT content, pinned, confidence, last_accessed "
+        "FROM memories WHERE id=?", (memory_id,)).fetchone()
     if not row:
         conn.close()
         return f"Memory #{memory_id} not found."
+    reason = _protection_reason(row)
+    if reason and not override:
+        conn.close()
+        return (f"REFUSED to forget #{memory_id}: protected ({reason}). "
+                f"Confirm its content is captured elsewhere, then pass "
+                f"override=True.")
     conn.execute("DELETE FROM memories WHERE id=?", (memory_id,))
     conn.commit()
     conn.close()
