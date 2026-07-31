@@ -289,3 +289,12 @@ constant curation.
 
 If you find yourself wanting to organize, that's a smell. Just use it.
 The network finds its own shape.
+
+---
+
+## Further reading
+
+- [design/module-decomposition.md](design/module-decomposition.md) — *why*
+  memory is a separate module with a small interface instead of a table your
+  agent reaches into, framed through Parnas's 1971 information-hiding paper.
+  Read this if you're integrating mycelium and deciding where the seams go.
