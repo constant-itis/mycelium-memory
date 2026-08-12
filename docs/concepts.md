@@ -219,7 +219,8 @@ for "show me every time I made this kind of decision" analysis later.
 | Tool | Use it when |
 |---|---|
 | `context(project="")` | Start of a session — load the hub memories. |
-| `save(content, project=)` | You learned something worth keeping. Short, dense. |
+| `recent(days=14, project=)` | Start of a session, next to `context()` — the episodic view of what was worked on lately (read-only; ranked by recency, which `context()` is blind to). See [recency-precision.md](recency-precision.md). |
+| `save(content, project=)` | You learned something worth keeping. Short, dense. Add `contradicts_prior=True` when it conflicts with what a model thinks it knows. |
 | `recall(query, project=)` | You need to look something up. |
 | `connections(memory_id)` | You want to see the local neighborhood of a memory. |
 | `pin(memory_id)` | This memory is human-confirmed, protect it. |

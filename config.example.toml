@@ -25,6 +25,17 @@ recall_propagate = 8           # max neighbors to propagate per recall hit
 consolidation_threshold = 10   # nudge to consolidate above this hot-memory count per project
 pinned_decay_floor = 0.5       # pinned memories' connections never decay below this
 
+# Recency surfacing (recent() tool + GET /wake) — the episodic view context() is
+# blind to. recent() ranks by max(created, last_accessed), newest first.
+recent_window_days = 14        # episodic horizon for recent() / /wake
+recent_limit = 15              # max memories in a digest (mirrors hub_limit)
+recent_summary_chars = 140     # per-line content trim in the recent() text digest
+wake_summary_chars = 200       # per-item content trim in the /wake JSON payload
+# Prior-override salience: a memory saved with contradicts_prior=True gets this
+# ranking bump so a stored fact outranks the model's (possibly stale) training
+# prior. Kept > pinned's implicit weight so a learned exception wins.
+contradicts_prior_boost = 0.25
+
 # Optional: keyword clusters for the discover() pass.
 # Memories sharing any of these keywords get auto-linked. Add your own
 # domain terms (vendor names, project codenames, etc.) — leave empty to skip

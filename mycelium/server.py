@@ -167,7 +167,8 @@ def _init_schema(conn: sqlite3.Connection) -> None:
             access_count INTEGER DEFAULT 0,
             pinned INTEGER DEFAULT 0,
             confidence REAL DEFAULT 0.3,
-            source_type TEXT DEFAULT 'agent_observation'
+            source_type TEXT DEFAULT 'agent_observation',
+            contradicts_prior INTEGER DEFAULT 0
         );
 
         CREATE TABLE IF NOT EXISTS connections (
@@ -260,6 +261,18 @@ def _init_schema(conn: sqlite3.Connection) -> None:
             updated   TEXT    NOT NULL
         );
     """)
+
+    # contradicts_prior salience flag — additive migration. Marks memories whose
+    # content conflicts with the model's base/training knowledge (an edition base
+    # knowledge thinks is EOL, a service on a nonstandard port, a tool used against
+    # its documented purpose) so retrieval can outrank the prior. try/except ALTER
+    # keeps pre-existing DBs forward-compatible; the CREATE TABLE above already
+    # carries the column on fresh installs.
+    try:
+        conn.execute("SELECT contradicts_prior FROM memories LIMIT 1")
+    except sqlite3.OperationalError:
+        conn.execute("ALTER TABLE memories ADD COLUMN contradicts_prior INTEGER DEFAULT 0")
+
     conn.commit()
 
 
@@ -455,7 +468,7 @@ def _get_neighbors(conn: sqlite3.Connection, memory_id: int, limit: int | None =
         limit = _cfg().memory["recall_propagate"]
     rows = conn.execute(
         """
-        SELECT m.id, m.content, m.project, m.tier, m.access_count,
+        SELECT m.id, m.content, m.project, m.tier, m.access_count, m.contradicts_prior,
                c.strength, c.last_activated, c.co_access_count
         FROM connections c
         JOIN memories m ON m.id = c.target
@@ -476,6 +489,7 @@ def _get_neighbors(conn: sqlite3.Connection, memory_id: int, limit: int | None =
                 "content": r["content"],
                 "project": r["project"],
                 "tier": r["tier"],
+                "contradicts_prior": r["contradicts_prior"],
                 "connection_strength": round(decayed, 3),
                 "co_access_count": r["co_access_count"],
             })
@@ -524,7 +538,7 @@ def _fts_search(conn: sqlite3.Connection, query: str, limit: int = 10) -> list[d
         rows = conn.execute(
             """
             SELECT m.id, m.content, m.project, m.tier, m.access_count,
-                   m.created, m.last_accessed
+                   m.created, m.last_accessed, m.contradicts_prior
             FROM memories_fts f
             JOIN memories m ON m.id = f.rowid
             WHERE memories_fts MATCH ?
@@ -543,7 +557,7 @@ def _fts_search(conn: sqlite3.Connection, query: str, limit: int = 10) -> list[d
         rows = conn.execute(
             f"""
             SELECT m.id, m.content, m.project, m.tier, m.access_count,
-                   m.created, m.last_accessed
+                   m.created, m.last_accessed, m.contradicts_prior
             FROM memories m
             WHERE {clauses}
             LIMIT ?
@@ -571,7 +585,13 @@ def _fts_search(conn: sqlite3.Connection, query: str, limit: int = 10) -> list[d
                 recency_boost = 0.3 * math.exp(-days_old / 3.0)
             except (ValueError, TypeError):
                 pass
-        return coverage + access_boost + recency_boost
+        # Salience: keep prior-contradicting facts in the candidate pool so the
+        # top-`limit` cut here doesn't drop them before recall() re-ranks.
+        salience_boost = (
+            _cfg().memory["contradicts_prior_boost"]
+            if memory.get("contradicts_prior") else 0.0
+        )
+        return coverage + access_boost + recency_boost + salience_boost
 
     results.sort(key=_score, reverse=True)
     return results[:limit]
@@ -585,6 +605,8 @@ def _format_memory(m: dict) -> str:
         parts.append("[consolidated]")
     if m.get("pinned"):
         parts.append("[pinned]")
+    if m.get("contradicts_prior"):
+        parts.append("[OVERRIDES-PRIOR]")
     parts.append(m["content"])
     if m.get("connection_strength"):
         parts.append(f"[strength: {m['connection_strength']}]")
@@ -637,7 +659,7 @@ def _check_duplicates(conn, content: str, project: str = "", threshold: float = 
     candidates = _fts_search(conn, content, limit=8)
     if project:
         proj_memories = conn.execute(
-            "SELECT id, content, project, tier, access_count, created, last_accessed "
+            "SELECT id, content, project, tier, access_count, created, last_accessed, contradicts_prior "
             "FROM memories WHERE project = ? ORDER BY last_accessed DESC LIMIT 20",
             (project,),
         ).fetchall()
@@ -674,12 +696,20 @@ def save(
     pinned: bool = False,
     confidence: float = 0.3,
     source_type: str = "agent_observation",
+    contradicts_prior: bool = False,
 ) -> str:
     """Save a memory. Keep it short and dense — one idea per memory.
 
     The system auto-connects it to similar existing memories. If a similar memory
     already exists, suggests updating instead — pass force=True to save anyway.
     Set pinned=True for human-confirmed facts; pinned memories resist decay.
+
+    Set contradicts_prior=True when the fact conflicts with your base/training
+    knowledge — e.g. the user runs an edition/version base knowledge thinks is
+    gone, a service on a nonstandard port, a tool used against its documented
+    purpose. These are the memories most likely to be steamrolled by your prior
+    later; the flag makes them outrank generic matches at recall time and renders
+    an [OVERRIDES-PRIOR] marker.
     """
     conn = get_db()
     now = _now()
@@ -704,8 +734,8 @@ def save(
 
     cur = conn.execute(
         "INSERT INTO memories (content, project, tier, created, last_accessed, "
-        "access_count, pinned, confidence, source_type) "
-        "VALUES (?,?,'hot',?,?,1,?,?,?)",
+        "access_count, pinned, confidence, source_type, contradicts_prior) "
+        "VALUES (?,?,'hot',?,?,1,?,?,?,?)",
         (
             content,
             project,
@@ -714,6 +744,7 @@ def save(
             1 if pinned else 0,
             0.8 if pinned else confidence,
             source_type,
+            1 if contradicts_prior else 0,
         ),
     )
     new_id = cur.lastrowid
@@ -840,7 +871,7 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
 
     if not results and project:
         results = conn.execute(
-            "SELECT id, content, project, tier, access_count, created, last_accessed "
+            "SELECT id, content, project, tier, access_count, created, last_accessed, contradicts_prior "
             "FROM memories WHERE project=? ORDER BY last_accessed DESC LIMIT ?",
             (project, limit),
         ).fetchall()
@@ -867,7 +898,7 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
             if mid in have:
                 continue
             row = conn.execute(
-                "SELECT id, content, project, tier, access_count, created, last_accessed "
+                "SELECT id, content, project, tier, access_count, created, last_accessed, contradicts_prior "
                 "FROM memories WHERE id=?",
                 (mid,),
             ).fetchone()
@@ -910,7 +941,13 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
         # Semantic similarity as a primary ranking signal (semantic-led). 0 when
         # disabled or the memory has no vector, so lexical behavior is unchanged.
         semantic_boost = float(sem["weight"]) * sims.get(memory["id"], 0.0) if sims else 0.0
-        return coverage + access_boost + recency_boost + semantic_boost
+        # Salience: a fact flagged as contradicting base/training knowledge must
+        # outrank generic matches so a stored truth beats the model's prior.
+        salience_boost = (
+            _cfg().memory["contradicts_prior_boost"]
+            if memory.get("contradicts_prior") else 0.0
+        )
+        return coverage + access_boost + recency_boost + semantic_boost + salience_boost
 
     pool: dict[int, tuple[dict, float, str]] = {}
     for r in results:
@@ -1056,6 +1093,172 @@ def context(project: str = "", agent: str = "") -> str:
 
     conn.close()
     return "\n".join(lines)
+
+
+# ============================================================================
+# Recency surfacing — recent() episodic digest + GET /wake
+# ----------------------------------------------------------------------------
+# CLS-inspired (McClelland/O'Reilly 1995): context() above is the neocortical
+# hub route — it ranks by access × connections and is recency-BLIND. recent() is
+# the hippocampal episodic route — it ranks purely by recency so a fresh session
+# sees what was *just* worked on, which hub-centrality structurally drowns (a new
+# memory hasn't had time to become a hub). This is a READ-ONLY view over existing
+# rows — consolidation is copy-not-move, so surfacing empties nothing.
+#
+# CRITICAL — surfacing must not reactivate: recent()/_recent_rows deliberately
+# skip _touch_memory + _track_session_access. Every normal recall() bumps
+# last_accessed; if the wake digest touched what it surfaces, everything shown at
+# session start would stay "recent" forever (a self-reinforcing loop). Only a
+# real, model-initiated recall() earns the Hebbian reactivation. Priming ≠ recall.
+# ============================================================================
+
+def _column_exists(conn: sqlite3.Connection, table: str, col: str) -> bool:
+    """True if `col` exists on `table`. Lets recent() run on schemas both before
+    and after the contradicts_prior migration (forward-compatible)."""
+    try:
+        conn.execute(f"SELECT {col} FROM {table} LIMIT 1")
+        return True
+    except sqlite3.OperationalError:
+        return False
+
+
+def _humanize_age(iso: str) -> str:
+    """Compact age like '9m' / '3h' / '5d' from an ISO timestamp."""
+    try:
+        dt = datetime.fromisoformat(iso)
+    except (ValueError, TypeError):
+        return "?"
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=timezone.utc)
+    secs = max(0.0, (datetime.now(timezone.utc) - dt).total_seconds())
+    if secs < 3600:
+        return f"{int(secs // 60)}m"
+    if secs < 86400:
+        return f"{int(secs // 3600)}h"
+    return f"{int(secs // 86400)}d"
+
+
+def _recent_rows(conn: sqlite3.Connection, days: int, limit: int,
+                 project: str = "") -> list[dict]:
+    """Recency-ranked memories (episodic view), newest first. READ-ONLY: no
+    _touch_memory / no co-access strengthening (see section header). Recency =
+    max(created, last_accessed) — a memory counts as recent if it was written OR
+    genuinely recalled lately. Timestamps are UTC isoformat → lexical compare
+    matches chronological order. `contradicts_prior` is selected when present so
+    the digest can flag prior-overriding facts; degrades to 0 on older schemas."""
+    cutoff = (datetime.now(timezone.utc) - timedelta(days=max(0, days))).isoformat()
+    cp_sel = "contradicts_prior" if _column_exists(conn, "memories", "contradicts_prior") else "0 AS contradicts_prior"
+    params: list = [cutoff]
+    proj_clause = ""
+    if project:
+        proj_clause = "AND project = ?"
+        params.append(project)
+    params.append(max(1, limit))
+    rows = conn.execute(f"""
+        SELECT id, content, project, tier, created, last_accessed,
+               access_count, pinned, confidence, {cp_sel},
+               max(created, last_accessed) AS recency
+        FROM memories
+        WHERE max(created, last_accessed) >= ? {proj_clause}
+        ORDER BY recency DESC
+        LIMIT ?
+    """, params).fetchall()
+    return [dict(r) for r in rows]
+
+
+def _recent_summary_line(m: dict, trim: int) -> str:
+    """One dense line for the digest: id, age, markers, trimmed content."""
+    markers = []
+    if m.get("pinned"):
+        markers.append("[pinned]")
+    if m.get("contradicts_prior"):
+        markers.append("[OVERRIDES-PRIOR]")
+    if m.get("tier") == "cold":
+        markers.append("[consolidated]")
+    mk = (" ".join(markers) + " ") if markers else ""
+    age = _humanize_age(m.get("recency") or m.get("last_accessed") or m.get("created") or "")
+    body = " ".join((m.get("content") or "").split())
+    if len(body) > trim:
+        body = body[:trim - 1].rstrip() + "…"
+    return f"[#{m['id']}] {age} · {mk}{body}"
+
+
+@mcp.tool()
+@resilient
+def recent(days: int | None = None, limit: int | None = None, project: str = "") -> str:
+    """Recent episodic digest — what's been worked on lately, newest first.
+
+    Ranks by recency (max of created / last-accessed) — the axis context() is
+    blind to (context() ranks hubs by access × connections). Call at the START of
+    a session alongside context(): context() = what you durably know, recent() =
+    what just happened. Then recall() the specific threads you need.
+
+    READ-ONLY: this does NOT touch or strengthen memories, so priming on recent
+    work doesn't make that work look permanently recent. [OVERRIDES-PRIOR]
+    markers flag facts about the user's stack that contradict base knowledge —
+    trust them over your training prior.
+    """
+    mem = _cfg().memory
+    days = mem["recent_window_days"] if days is None else days
+    limit = mem["recent_limit"] if limit is None else limit
+    trim = mem["recent_summary_chars"]
+    conn = get_db()
+    rows = _recent_rows(conn, days=days, limit=limit, project=project)
+    conn.close()
+    if not rows:
+        return f"No memory activity in the last {days} days."
+
+    # Group by project; projects ordered by their most-recent item (rows already
+    # newest-first, so first occurrence wins), memories newest-first within.
+    order: list[str] = []
+    groups: dict[str, list[dict]] = {}
+    for m in rows:
+        key = m.get("project") or "(no project)"
+        if key not in groups:
+            groups[key] = []
+            order.append(key)
+        groups[key].append(m)
+
+    lines = [f"## Recent activity — last {days}d, {len(rows)} memories (newest first)"]
+    for key in order:
+        lines.append(f"\n### {key}")
+        for m in groups[key]:
+            lines.append(f"  {_recent_summary_line(m, trim)}")
+    return "\n".join(lines)
+
+
+@mcp.custom_route("/wake", methods=["GET"])
+async def wake_route(request):
+    """Read-only recency digest for a SessionStart shell hook to curl.
+    GET /wake?days=14&limit=15&project= → JSON. Never mutates state; degrades to
+    an error object rather than a 500 that could read as 'server down'."""
+    from starlette.responses import JSONResponse
+    mem = _cfg().memory
+    try:
+        days = int(request.query_params.get("days", mem["recent_window_days"]))
+        limit = int(request.query_params.get("limit", mem["recent_limit"]))
+        project = request.query_params.get("project", "")
+    except (ValueError, TypeError):
+        days, limit, project = mem["recent_window_days"], mem["recent_limit"], ""
+    trim = mem["wake_summary_chars"]
+    conn = get_db()
+    try:
+        rows = _recent_rows(conn, days=days, limit=limit, project=project)
+    except Exception as e:  # never crash the hook's request
+        conn.close()
+        return JSONResponse({"ok": False, "error": str(e), "recent": []})
+    conn.close()
+    items = [{
+        "id": m["id"],
+        "project": m.get("project") or "",
+        "age": _humanize_age(m.get("recency") or m.get("last_accessed") or m.get("created") or ""),
+        "pinned": bool(m.get("pinned")),
+        "overrides_prior": bool(m.get("contradicts_prior")),
+        "tier": m.get("tier") or "hot",
+        "summary": " ".join((m.get("content") or "").split())[:trim],
+    } for m in rows]
+    return JSONResponse({"ok": True, "generated": _now(), "days": days,
+                         "count": len(items), "recent": items})
 
 
 @mcp.tool()

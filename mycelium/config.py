@@ -34,6 +34,15 @@ DEFAULTS: dict[str, Any] = {
         "consolidation_threshold": 10,
         "pinned_decay_floor": 0.5,
         "keyword_clusters": [],
+        # --- recency surfacing (recent() / /wake) + prior-override salience ---
+        "recent_window_days": 14,        # episodic horizon for recent() / /wake
+        "recent_limit": 15,              # max memories in a digest (mirrors hub_limit)
+        "recent_summary_chars": 140,     # per-line trim in the recent() text digest
+        "wake_summary_chars": 200,       # per-item trim in the /wake JSON payload
+        "contradicts_prior_boost": 0.25, # ranking bump for a stored fact that
+                                         # conflicts with base knowledge; deliberately
+                                         # > pin (0.1) so a learned exception beats a
+                                         # confident-but-wrong default
     },
     "foundry": {
         "enabled": True,
