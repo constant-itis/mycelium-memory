@@ -7,6 +7,7 @@ Start with **concepts**, then reach for the rest as you need them.
 | [concepts.md](concepts.md) | Read-once overview — what mycelium actually is and how the pieces (recall, connections, decay, consolidation) fit together. |
 | [claude-md-primer.md](claude-md-primer.md) | A snippet to paste into your own `CLAUDE.md` so Claude uses mycelium consistently (recall before asking, save what's worth keeping). |
 | [configuration.md](configuration.md) | The single TOML config file, its sections, and the `MYCELIUM_*` env overrides. Zero-config works; override only what you care about. |
+| [recency-precision.md](recency-precision.md) | The `recent()` / `/wake` episodic view (what context() is blind to) and the `contradicts_prior` salience flag that lets a stored fact outrank the model's training prior. |
 | [seeding.md](seeding.md) | Bootstrap a fresh (empty) install — paste-prompts for seeding from an existing `CLAUDE.md`, project trees, notes, or shell history. |
 | [local-llm-maintenance.md](local-llm-maintenance.md) | Offload memory upkeep to a local LLM: draft consolidation summaries + an archive/keep proposal, human-verified before deletion. |
 | [research/](research/) | Long-form notes on the ideas behind mycelium — memory governance for long-running agent systems. |
