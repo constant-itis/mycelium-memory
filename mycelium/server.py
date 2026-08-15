@@ -573,7 +573,7 @@ def _fts_search(conn: sqlite3.Connection, query: str, limit: int = 10) -> list[d
         content_lower = memory["content"].lower()
         hits = sum(1 for t in score_tokens if t in content_lower)
         coverage = hits / len(score_tokens) if score_tokens else 0
-        access_boost = math.log1p(memory.get("access_count", 0)) * 0.05
+        access_boost = min(math.log1p(memory.get("access_count", 0)) * 0.05, 0.15)
         recency_boost = 0.0
         created = memory.get("created", "")
         if created:
@@ -910,9 +910,11 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
         conn.close()
         return "No memories found."
 
-    for r in results:
-        _touch_memory(conn, r["id"], agent=agent)
-        _track_session_access(conn, r["id"], agent=agent)
+    # Touching (last_accessed/access_count bump + session co-access) is deferred
+    # to AFTER ranking so only SURFACED memories are touched, not every FTS/
+    # semantic candidate. Touching candidates inflated hub access_count and
+    # polluted the max(created, last_accessed) recency signal — a self-
+    # reinforcing hub-bias flywheel. Priming a search candidate != recalling it.
 
     raw_tokens = [
         t.strip().lower()
@@ -926,7 +928,7 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
         content_lower = memory["content"].lower()
         hits = sum(1 for t in score_tokens if t in content_lower) if score_tokens else 0
         coverage = hits / len(score_tokens) if score_tokens else 0.5
-        access_boost = math.log1p(memory.get("access_count", 0)) * 0.05
+        access_boost = min(math.log1p(memory.get("access_count", 0)) * 0.05, 0.15)
         recency_boost = 0.0
         created = memory.get("created", "")
         if created:
@@ -980,10 +982,19 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
     except Exception:
         pass
 
+    total_to_show = limit + _cfg().memory["recall_propagate"]
+
+    # Touch ONLY the surfaced memories (what actually gets injected into context)
+    # + track them for co-access. Deferred here so search candidates that lost
+    # the ranking don't get their access_count/last_accessed inflated (the hub-
+    # bias flywheel), which also keeps max(created, last_accessed) recency honest.
+    for _m, _s, _src in ranked[:total_to_show]:
+        _touch_memory(conn, _m["id"], agent=agent)
+        _track_session_access(conn, _m["id"], agent=agent)
+
     conn.commit()
 
     lines = [f"## Recall: {len(ranked)} memories"]
-    total_to_show = limit + _cfg().memory["recall_propagate"]
     for m, score, source in ranked[:total_to_show]:
         tag = "↔" if source == "connected" else "●"
         lines.append(f"  {tag} {_format_memory(m)} [score: {score:.2f}]")
