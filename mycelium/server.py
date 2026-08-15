@@ -281,6 +281,18 @@ def _now() -> str:
     return datetime.now(timezone.utc).isoformat()
 
 
+def _log_embed_failure(memory_id, err):
+    """Log an embed failure at WRITE TIME so it is visible immediately, not only
+    discovered later by a coverage sweep. Best-effort; never raises. Uses the
+    stdlib logger so the host app decides where it goes."""
+    try:
+        import logging
+        logging.getLogger("mycelium").warning(
+            "embed failed for #%s: %s: %s", memory_id, type(err).__name__, err)
+    except Exception:
+        pass
+
+
 # ----- semantic recall (optional; active only when [semantic] embed_url set) -----
 def _semantic_sims(conn: sqlite3.Connection, qvec) -> dict:
     """{memory_id: cosine} over stored vectors. {} on any failure so recall
@@ -311,7 +323,8 @@ def _embed_memory(conn: sqlite3.Connection, memory_id: int, content: str) -> boo
             (memory_id, len(v), sem["embed_model"], _embed.to_blob(v), _now()),
         )
         return True
-    except Exception:
+    except Exception as e:
+        _log_embed_failure(memory_id, e)
         return False  # memory still saved; backfill can fill the vector later
 
 
