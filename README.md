@@ -39,6 +39,15 @@ Two memory systems in one install:
   cheaper model tier for this prompt size." Queryable later for pattern
   analysis or training-data extraction. Optional; turn off if unused.
 
+The semantic store also has a **recency view**. `context()` surfaces the hubs
+of your memory, the connected things you lean on most, but it can't see what you
+touched an hour ago. `recent()` (and the `/wake` startup view) covers that blind
+spot: a plain, time-ordered look at what just happened, so a fresh session
+resumes on the actual last thread instead of the all-time favorites. Stored
+facts can also carry a `contradicts_prior` flag, so something you saved can
+outrank whatever the model picked up in training. Details in
+[docs/recency-precision.md](docs/recency-precision.md).
+
 Plus two slash-skill conventions and a short-term memory hook for Claude Code:
 
 - **`/checkpoint`** — save the current session's state to memory before
