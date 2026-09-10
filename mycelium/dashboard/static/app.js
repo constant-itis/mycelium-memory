@@ -758,8 +758,7 @@ async function showDetail(id, openMobile = true) {
     <h3>Details</h3>
     <div class="kv">
       <b>confidence</b><span>${(m.confidence || 0).toFixed(2)}</span>
-      <b>times seen</b><span>${m.times_seen}</span>
-      <b>times confirmed</b><span>${m.times_confirmed}</span>
+      <b>accesses</b><span>${m.access_count || 0}</span>
       <b>source</b><span>${m.source_type || "—"}</span>
       <b>created</b><span>${shortTime(m.created)}</span>
       <b>last accessed</b><span>${shortTime(m.last_accessed)}</span>

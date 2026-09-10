@@ -90,6 +90,12 @@ host = "127.0.0.1"   # e.g. "100.x.y.z" to reach it over a private network
 port = 8600
 ```
 
+> **⚠️ No authentication.** The dashboard has **no login and no access
+> control** — anyone who can reach the port can read your entire memory graph.
+> **Do not bind it to a public interface** (e.g. `0.0.0.0` or a public IP).
+> Keep it on `localhost`, or bind it to a trusted private/VPN address (such as
+> a Tailscale IP) that only you can reach.
+
 The dashboard is **stdlib-only** (Python's `http.server` + `sqlite3`), so it
 adds no dependencies to the package and runs anywhere mycelium does.
 
