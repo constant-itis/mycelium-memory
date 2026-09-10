@@ -63,6 +63,36 @@ Plus two slash-skill conventions and a short-term memory hook for Claude Code:
 > language, what conventions like `[session-checkpoint]` mean, the
 > gardener-not-librarian framing. ~10 minutes, no commands.
 
+## Visualize your memory graph
+
+![The mycelium dashboard: a project's memories laid out as a graph, with an inspector panel](assets/mycelium-dashboard.png)
+
+*Synthetic demo data — your own graph fills in as you save.*
+
+Memory is a graph, so you can look at it. `mycelium dash` serves a small
+web app that maps your projects, drills into the memories inside each one,
+follows the connections between them, groups related memories into detected
+communities, and lists your recent recalls. It reads the database in
+**read-only** mode and never writes — it's a viewer, not an editor.
+
+```bash
+mycelium dash                     # http://127.0.0.1:8600
+mycelium dash --port 9000         # pick another port
+```
+
+By default it binds `127.0.0.1`. To browse from another machine, point it at
+a private address (e.g. a VPN/Tailscale IP) via `--host` or the config:
+
+```toml
+# ~/.mycelium/config.toml
+[dashboard]
+host = "127.0.0.1"   # e.g. "100.x.y.z" to reach it over a private network
+port = 8600
+```
+
+The dashboard is **stdlib-only** (Python's `http.server` + `sqlite3`), so it
+adds no dependencies to the package and runs anywhere mycelium does.
+
 ## What a session feels like
 
 https://github.com/user-attachments/assets/2a274f61-24e8-4eed-82a2-f3dbe75126cd
@@ -278,3 +308,6 @@ source for foundry. If you lose `foundry.db`, re-ingest from JSONL with
 AGPL-3.0-or-later. See [LICENSE](LICENSE).
 
 For commercial use without AGPL obligations, contact constantitis@gmail.com.
+
+The dashboard bundles a few MIT-licensed JavaScript libraries; see
+[their attribution](mycelium/dashboard/static/THIRD-PARTY.md).

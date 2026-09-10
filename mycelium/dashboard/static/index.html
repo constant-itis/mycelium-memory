@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#101516"><title>Mycelium — Memory atlas</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M7 24L16 7l9 17M10 18h12' fill='none' stroke='%23eac092' stroke-width='3'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="/static/workspace.css">
+<script src="/static/3d-force-graph.min.js" defer></script>
+<script src="/static/cytoscape.min.js" defer></script>
+<script src="/static/graphology.umd.min.js" defer></script>
+<script src="/static/graphology-library.min.js" defer></script>
+<script src="/static/app.js" defer></script>
+</head>
+<body>
+<header>
+ <a class="brand" href="#/" aria-label="Mycelium home"><svg viewBox="0 0 32 32" aria-hidden="true"><path d="M6 25 16 7l10 18M10 18h12M16 7v19"/><circle cx="16" cy="7" r="3"/><circle cx="6" cy="25" r="3"/><circle cx="26" cy="25" r="3"/></svg><span>mycelium<span class="brand-sub">MEMORY ATLAS</span></span></a>
+ <div class="header-context">A map of what stays connected.</div>
+ <div class="stats" id="stats">Connecting…</div>
+</header>
+<nav class="tabbar" aria-label="Workspace panels">
+ <button data-pane="left">Explore</button><button data-pane="main" class="active">Map</button><button data-pane="right">Inspector</button>
+</nav>
+<aside class="left" aria-label="Explore memories">
+ <div class="rail-title"><span>Explore</span><span class="edition">01 / ATLAS</span></div>
+ <div id="lens-switch" aria-label="Group memories"><button data-lens="projects" class="active">Projects</button><button data-lens="communities">Communities</button></div>
+ <div class="section open" data-section="search">
+  <button class="head" aria-expanded="true"><span>Find a memory</span><span class="arrow">⌄</span></button>
+  <div class="body"><div class="search-field"><input id="q" type="text" aria-label="Search all memories" placeholder="Search all memories…" autocomplete="off"><kbd>/</kbd></div><div id="search-results" aria-live="polite"></div></div>
+ </div>
+ <div class="section open" data-section="projects">
+  <button class="head" aria-expanded="true"><span>Project directory</span><span class="arrow">⌄</span></button>
+  <div class="body"><input id="project-filter" type="text" aria-label="Filter projects" placeholder="Filter projects…" autocomplete="off"><div class="proj-list" id="proj-list"></div></div>
+ </div>
+ <div class="rail-foot"><span class="live-dot"></span> Persistent memory, in view.</div>
+</aside>
+<main class="active">
+ <div class="map-heading"><div><nav id="breadcrumb" aria-label="Map location"></nav><h1 id="view-title">Memory atlas</h1><p id="view-description">Follow the connections between projects.</p></div><div class="map-actions"><div id="mode-switch" aria-label="Map layout"><button data-mode="flat">2D map</button><button data-mode="3d">3D</button></div><button class="icon-button" id="filter-toggle" aria-label="Graph filters" aria-expanded="false" title="Graph filters"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 17h16M8 4v6m8 4v6"/></svg></button></div></div>
+ <div id="graph" role="region" aria-label="Interactive memory graph"></div>
+ <canvas id="graph-labels" aria-hidden="true"></canvas>
+ <div id="filter-panel" hidden>
+  <div class="panel-label">Graph filters <button id="reset-filters">Reset</button></div>
+  <label for="strength">Minimum strength <output id="strength-val">0.5</output></label><input type="range" id="strength" min="0" max="10" step="0.1" value="0.5">
+  <label for="knn">Strongest links per node <output id="knn-val">3</output></label><input type="range" id="knn" min="1" max="30" step="1" value="3">
+  <p class="filter-note">Keeps each node’s strongest links. Selected memories reveal all their connections in this view.</p>
+  <label class="check"><input type="checkbox" id="hide-isolated" checked> Hide unconnected nodes</label>
+  <label class="check"><input type="checkbox" id="show-labels" checked> Show map labels</label>
+  <button id="apply" class="primary">Apply filters</button>
+ </div>
+ <button id="toggle-left" class="rail-toggle rail-toggle-l" title="Toggle explorer ([)" aria-label="Toggle explorer">‹</button>
+ <button id="toggle-right" class="rail-toggle rail-toggle-r" title="Toggle inspector (])" aria-label="Toggle inspector">›</button>
+ <div id="tooltip"></div><div id="status" role="status" aria-live="polite">Loading your memory map…</div>
+ <div class="map-footer"><div><div id="rendered"></div><div id="hint">Drag to pan · scroll to zoom · click to explore</div></div><button id="relayout" title="Fit map to view">⤢ <span>Fit map</span></button></div>
+ <div id="legend" class="sr-only"></div>
+</main>
+<aside class="right" id="detail" aria-label="Memory inspector">
+ <div class="inspector-tabs"><button data-inspector="inspect" class="active">Overview</button><button data-inspector="activity">Recent recalls <span class="live-dot"></span></button></div>
+ <div id="detail-content"></div><div id="activity-content" hidden></div>
+</aside>
+<button class="fab-back" id="fab-back" title="Back to map">↤ Map</button>
+</body></html>

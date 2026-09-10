@@ -35,3 +35,4 @@ exclude = ["_source*", "tests*", "scripts*"]
 
 [tool.setuptools.package-data]
 mycelium = ["eval_data/*.json"]
+"mycelium.dashboard" = ["static/*"]
