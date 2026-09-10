@@ -85,6 +85,12 @@ def _cmd_foundry_query(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_dash(args: argparse.Namespace) -> int:
+    from . import dashboard
+    dashboard.serve(_config.load(args.config), host=args.host, port=args.port)
+    return 0
+
+
 def _cmd_config(args: argparse.Namespace) -> int:
     cfg = _config.load(args.config)
     print(f"# loaded from: {cfg.source}")
@@ -137,6 +143,11 @@ def main(argv: list[str] | None = None) -> int:
     i.add_argument("--path", help="target path (default: ~/.mycelium/config.toml)")
     i.add_argument("--force", action="store_true", help="overwrite if exists")
     i.set_defaults(func=_cmd_init)
+
+    d = sub.add_parser("dash", help="serve the read-only web graph explorer")
+    d.add_argument("--host", help="override config [dashboard] host")
+    d.add_argument("--port", type=int, help="override config [dashboard] port")
+    d.set_defaults(func=_cmd_dash)
 
     cfg_cmd = sub.add_parser("config", help="print effective config")
     cfg_cmd.set_defaults(func=_cmd_config)

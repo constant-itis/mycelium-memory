@@ -61,6 +61,12 @@ DEFAULTS: dict[str, Any] = {
         "chunk_chars": 1400,            # long-content chunk size before mean-pool
         "timeout_seconds": 5,           # per embed call; keep recall/save snappy
     },
+    "dashboard": {
+        # Read-only web graph explorer (`mycelium dash`). Binds localhost by
+        # default; point host at a private/VPN address to view from another box.
+        "host": "127.0.0.1",
+        "port": 8600,
+    },
 }
 
 
@@ -154,6 +160,7 @@ class Config:
     memory: dict
     foundry: dict
     semantic: dict
+    dashboard: dict
     source: str  # "defaults" | "<path-to-toml>"
 
     @property
@@ -179,6 +186,7 @@ class Config:
             "memory": self.memory,
             "foundry": self.foundry,
             "semantic": self.semantic,
+            "dashboard": self.dashboard,
         }
 
 
@@ -211,5 +219,6 @@ def load(config_path: str | None = None) -> Config:
         memory=cfg["memory"],
         foundry=cfg["foundry"],
         semantic=cfg["semantic"],
+        dashboard=cfg["dashboard"],
         source=str(found_path) if found_path else "defaults",
     )
