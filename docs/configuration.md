@@ -120,6 +120,17 @@ silently falls back to pure keyword search. `numpy` is used for the similarity
 search only if it's already installed; otherwise a pure-Python path runs — it is
 never a required dependency.
 
+**Changing `embed_model` later:** each stored vector is tagged with the model
+that produced it, and semantic recall only compares vectors from the model
+currently in `embed_model` — a cosine between two different models is meaningless
+(each embeds into its own coordinate space, and dimensions may differ). So after
+you change `embed_model`, run `mycelium backfill-vectors` to re-embed every
+memory under the new model (memories keep a single vector, so the old ones are
+replaced). Until that finishes, not-yet-migrated memories just fall back to
+keyword recall instead of returning garbage, and the server logs a one-line
+warning naming the stale model. A model swap is therefore safe and resumable,
+not a silent-corruption risk.
+
 ---
 
 ## Tuning by symptom
@@ -128,6 +139,7 @@ never a required dependency.
 |---|---|
 | `recall()` keeps missing memories you remember | Lower `prune_threshold`, raise `decay_tau_days`, raise `recall_propagate` |
 | `recall()` misses paraphrased / synonym queries (right idea, different words) | Enable semantic recall — set `[semantic] embed_url`, then `mycelium backfill-vectors` |
+| You changed `embed_model` and recall got worse, or logs warn about "stale vectors" | Run `mycelium backfill-vectors` to re-embed every memory under the new model |
 | `context()` output is overwhelming | Lower `hub_limit` |
 | `save()` keeps complaining about duplicates I want anyway | Pass `force=True`, or revisit your save granularity |
 | The DB is bloating | Raise `prune_threshold`, lower `decay_tau_days`, run `discover()` + `consolidate()` more often |

@@ -65,6 +65,9 @@ max_age_days = 0       # 0 = no age limit
 # Local options (recommended): Ollama -> "http://localhost:11434/v1/embeddings"
 #   (`ollama pull nomic-embed-text`), LM Studio, or llama.cpp --embedding.
 # After enabling, backfill existing memories once:  mycelium backfill-vectors
+# Changed embed_model later? re-run `mycelium backfill-vectors` — recall only
+# compares vectors from the current model, so old-model vectors are ignored
+# (and a warning is logged) until they're re-embedded under the new model.
 embed_url = ""                         # e.g. "http://localhost:11434/v1/embeddings"
 embed_model = "nomic-embed-text"       # nomic-embed-text | embeddinggemma | bge-* | text-embedding-3-small ...
 weight = 10.0                          # how strongly cosine similarity drives ranking
