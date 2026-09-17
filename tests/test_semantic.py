@@ -129,3 +129,33 @@ def test_recall_lexical_unchanged_when_disabled(tmp_path, monkeypatch):
     S.save("postgres connection pooling notes", force=True)
     # keyword hit still works; no embedding endpoint is contacted
     assert "postgres" in S.recall("postgres", limit=5)
+
+
+def test_semantic_sims_excludes_other_model_vectors(tmp_path, stub, monkeypatch, caplog):
+    # A vector produced by a DIFFERENT model must never enter the candidate set:
+    # cross-model cosine is meaningless (each model has its own coordinate space).
+    # Without the model filter this stale row would score as if it were current.
+    monkeypatch.setenv("MYCELIUM_STORAGE_DB_PATH", str(tmp_path / "m.db"))
+    monkeypatch.setenv("MYCELIUM_SEMANTIC_EMBED_URL", stub)
+    monkeypatch.setenv("MYCELIUM_SEMANTIC_EMBED_MODEL", "test")
+    S.set_config(_config.load())
+    S._warned_stale_vectors.clear()
+
+    S.save("deep blue ocean trench biology", force=True)   # embedded under "test"
+    S.save("coral reef marine sanctuary", force=True)       # embedded under "test"
+
+    conn = S.get_db()
+    ids = [r["id"] for r in conn.execute("SELECT id FROM memories")]
+    stale_id = ids[0]
+    # Overwrite one memory's vector with a leftover from a PREVIOUS model tag.
+    conn.execute(
+        "INSERT OR REPLACE INTO memory_vectors (memory_id, dim, model, vec, updated) "
+        "VALUES (?,?,?,?,?)",
+        (stale_id, 3, "old-model", E.to_blob(E._normalize([1.0, 0.0, 0.0])), "x"))
+    conn.commit()
+
+    with caplog.at_level("WARNING", logger="mycelium"):
+        sims = S._semantic_sims(conn, E.embed_query("marine life", url=stub, model="test"))
+    assert stale_id not in sims                              # stale row excluded
+    assert any(mid in sims for mid in ids if mid != stale_id)  # active rows still present
+    assert "stale vectors excluded" in caplog.text          # and it warned loudly

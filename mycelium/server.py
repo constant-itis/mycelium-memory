@@ -293,12 +293,56 @@ def _log_embed_failure(memory_id, err):
         pass
 
 
+# Remembers which stale (model/dim) combos we've already warned about this process
+# so a model change doesn't spam the log on every recall — once per distinct combo.
+_warned_stale_vectors: set = set()
+
+
+def _log_stale_vectors(active_model, stale):
+    """Warn (once per stale combo) when memory_vectors holds vectors from a model
+    other than the active one. Those are excluded from semantic recall because
+    cross-model cosine is meaningless, so surface it instead of silently degrading.
+    Best-effort; never raises. Uses the stdlib logger like _log_embed_failure."""
+    key = (active_model, tuple(sorted(stale)))
+    if key in _warned_stale_vectors:
+        return
+    _warned_stale_vectors.add(key)
+    try:
+        import logging
+        logging.getLogger("mycelium").warning(
+            "stale vectors excluded from semantic recall (active model=%s): %s "
+            "- re-embed all memories after a model change so they are searchable again",
+            active_model, ", ".join(stale))
+    except Exception:
+        pass
+
+
 # ----- semantic recall (optional; active only when [semantic] embed_url set) -----
 def _semantic_sims(conn: sqlite3.Connection, qvec) -> dict:
-    """{memory_id: cosine} over stored vectors. {} on any failure so recall
-    degrades cleanly to pure lexical."""
+    """{memory_id: cosine} over stored vectors PRODUCED BY THE ACTIVE MODEL.
+
+    qvec comes from the currently-configured embedder, so comparing it to a
+    vector produced by a different model is meaningless (each model embeds into
+    its own coordinate space) and mixing dimensions would corrupt the math.
+    Filtering to the active model turns a model change / partial re-embed into
+    "old-model vectors simply don't match until re-embedded" instead of silent
+    corruption. Falls back to all vectors if embed_model is unset (legacy).
+    {} on any failure so recall degrades cleanly to pure lexical."""
     try:
-        rows = conn.execute("SELECT memory_id, vec FROM memory_vectors").fetchall()
+        model = _cfg().semantic.get("embed_model")
+        if model:
+            rows = conn.execute(
+                "SELECT memory_id, vec FROM memory_vectors WHERE model=?", (model,)
+            ).fetchall()
+            stale = conn.execute(
+                "SELECT model, dim, COUNT(*) c FROM memory_vectors "
+                "WHERE model<>? GROUP BY model, dim", (model,)
+            ).fetchall()
+            if stale:
+                _log_stale_vectors(
+                    model, ["%s/%s=%s" % (r["model"], r["dim"], r["c"]) for r in stale])
+        else:
+            rows = conn.execute("SELECT memory_id, vec FROM memory_vectors").fetchall()
         return _embed.cosine_sims(qvec, [(r["memory_id"], r["vec"]) for r in rows])
     except Exception:
         return {}
