@@ -1,0 +1,26 @@
+name: agent-index
+
+# Keep the agent-native map honest: regenerate it from the code and fail if the
+# committed map is stale or drifted.
+on:
+  push:
+    paths: ["mycelium/**", "scripts/**", "agent-index.json", "agent-graph.json", "docs/**"]
+  pull_request:
+    paths: ["mycelium/**", "scripts/**", "agent-index.json", "agent-graph.json", "docs/**"]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Regenerate the map
+        run: |
+          python3 scripts/build_agent_graph.py
+          python3 scripts/generate_agent_index.py
+      - name: Fail if the committed map is stale
+        run: git diff --exit-code agent-graph.json agent-index.json
+      - name: Verify the map resolves against the code
+        run: python3 scripts/verify_agent_index.py

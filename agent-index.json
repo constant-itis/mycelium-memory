@@ -1,0 +1,652 @@
+{
+  "schema": "mycelium.agent-index/v1",
+  "project": "mycelium-memory",
+  "version": "0.1.0",
+  "purpose": "Persistent memory for LLM CLIs that behaves like a brain, not a database.",
+  "generated_from": "agent-graph.json (AST extraction)",
+  "entrypoints": {
+    "cli": "mycelium.cli:main",
+    "server": "mycelium/server.py (FastMCP `mcp`, serve())"
+  },
+  "read_order": [
+    "AGENTS.md",
+    "agent-index.json",
+    "docs/concepts.md",
+    "docs/everyday-use.md"
+  ],
+  "concepts": [
+    {
+      "id": "memory",
+      "label": "Memory",
+      "summary": "A short dense unit of knowledge; one idea.",
+      "components": [
+        "comp.write_path",
+        "comp.read_path"
+      ],
+      "docs": [
+        "docs/concepts.md"
+      ]
+    },
+    {
+      "id": "recall",
+      "label": "Recall",
+      "summary": "Query + one-hop propagation through connections.",
+      "components": [
+        "comp.read_path",
+        "comp.semantic"
+      ],
+      "docs": [
+        "docs/concepts.md"
+      ]
+    },
+    {
+      "id": "connections",
+      "label": "Connections",
+      "summary": "Co-access edges; strengthen with use.",
+      "components": [
+        "comp.graph_dynamics"
+      ],
+      "docs": [
+        "docs/concepts.md"
+      ]
+    },
+    {
+      "id": "decay",
+      "label": "Decay",
+      "summary": "Unused paths weaken over time.",
+      "components": [
+        "comp.graph_dynamics"
+      ],
+      "docs": [
+        "docs/concepts.md"
+      ]
+    },
+    {
+      "id": "tiers",
+      "label": "Tiers (hot/cold)",
+      "summary": "Access tier; cold = consolidated summary.",
+      "components": [
+        "comp.maintenance"
+      ],
+      "docs": [
+        "docs/concepts.md"
+      ]
+    },
+    {
+      "id": "pinning",
+      "label": "Pinning",
+      "summary": "Protect confirmed facts from decay.",
+      "components": [
+        "comp.write_path",
+        "comp.maintenance"
+      ],
+      "docs": [
+        "docs/concepts.md"
+      ]
+    },
+    {
+      "id": "resolvers",
+      "label": "Resolvers",
+      "summary": "Disambiguation memory for an ambiguous term.",
+      "components": [
+        "comp.write_path"
+      ],
+      "docs": [
+        "docs/concepts.md"
+      ]
+    },
+    {
+      "id": "semantic-recall",
+      "label": "Semantic recall",
+      "summary": "Optional embedding match by meaning.",
+      "components": [
+        "comp.semantic"
+      ],
+      "docs": [
+        "docs/concepts.md",
+        "docs/benchmarks.md"
+      ]
+    },
+    {
+      "id": "consolidation",
+      "label": "Consolidation",
+      "summary": "Merge hot cluster into a cold summary.",
+      "components": [
+        "comp.maintenance"
+      ],
+      "docs": [
+        "docs/concepts.md"
+      ]
+    },
+    {
+      "id": "recency",
+      "label": "Recency / episodic",
+      "summary": "What just happened; context() is blind to it.",
+      "components": [
+        "comp.episodic"
+      ],
+      "docs": [
+        "docs/recency-precision.md"
+      ]
+    },
+    {
+      "id": "foundry",
+      "label": "Foundry",
+      "summary": "Behavioral append-only decision log.",
+      "components": [
+        "comp.foundry"
+      ],
+      "docs": [
+        "docs/concepts.md"
+      ]
+    }
+  ],
+  "components": [
+    {
+      "id": "comp.substrate",
+      "label": "Substrate engine",
+      "summary": "Storage, config, FTS and formatting that every tool composes.",
+      "primary_module": "mycelium.server",
+      "depends_on": [],
+      "symbols": [
+        "fn:mycelium.server:get_db",
+        "fn:mycelium.server:_cfg",
+        "fn:mycelium.server:_now",
+        "fn:mycelium.server:_format_memory",
+        "fn:mycelium.server:_fts_search"
+      ],
+      "paths": [
+        "mycelium/server.py:73-90",
+        "mycelium/server.py:42-46",
+        "mycelium/server.py:280-281",
+        "mycelium/server.py:657-670",
+        "mycelium/server.py:584-654"
+      ]
+    },
+    {
+      "id": "comp.config",
+      "label": "Config",
+      "summary": "TOML + env config loading, search paths, defaults.",
+      "primary_module": "mycelium.config",
+      "depends_on": [],
+      "symbols": [
+        "fn:mycelium.config:load",
+        "fn:mycelium.server:set_config",
+        "fn:mycelium.config:Config.to_dict"
+      ],
+      "paths": [
+        "mycelium/config.py:193-224",
+        "mycelium/server.py:49-57",
+        "mycelium/config.py:182-190"
+      ]
+    },
+    {
+      "id": "comp.semantic",
+      "label": "Semantic / embeddings",
+      "summary": "Embedding client and vector search; embed-on-save, semantic recall.",
+      "primary_module": "mycelium.embeddings",
+      "depends_on": [
+        "comp.substrate"
+      ],
+      "symbols": [
+        "fn:mycelium.embeddings:embed_query",
+        "fn:mycelium.embeddings:embed_document",
+        "fn:mycelium.embeddings:cosine_sims",
+        "fn:mycelium.embeddings:_prefixes",
+        "fn:mycelium.embeddings:_normalize",
+        "fn:mycelium.embeddings:_mean",
+        "fn:mycelium.embeddings:to_blob",
+        "fn:mycelium.embeddings:from_blob",
+        "fn:mycelium.embeddings:_post",
+        "fn:mycelium.server:_semantic_sims",
+        "fn:mycelium.server:_embed_memory",
+        "fn:mycelium.embeddings:_chunks",
+        "fn:mycelium.server:_log_embed_failure",
+        "fn:mycelium.server:_log_stale_vectors"
+      ],
+      "paths": [
+        "mycelium/embeddings.py:78-81",
+        "mycelium/embeddings.py:69-75",
+        "mycelium/embeddings.py:93-112",
+        "mycelium/embeddings.py:31-36",
+        "mycelium/embeddings.py:55-57",
+        "mycelium/embeddings.py:60-66",
+        "mycelium/embeddings.py:84-86",
+        "mycelium/embeddings.py:89-90",
+        "mycelium/embeddings.py:39-47",
+        "mycelium/server.py:321-348",
+        "mycelium/server.py:351-372",
+        "mycelium/embeddings.py:50-52",
+        "mycelium/server.py:284-293",
+        "mycelium/server.py:301-317"
+      ]
+    },
+    {
+      "id": "comp.graph_dynamics",
+      "label": "Graph dynamics",
+      "summary": "Decay, co-access strengthening, neighbor walk: the neural mechanics.",
+      "primary_module": "mycelium.server",
+      "depends_on": [
+        "comp.substrate"
+      ],
+      "symbols": [
+        "fn:mycelium.server:_apply_decay",
+        "fn:mycelium.server:_decay_strength",
+        "fn:mycelium.server:_touch_memory",
+        "fn:mycelium.server:_get_neighbors",
+        "fn:mycelium.server:_strengthen_connection",
+        "fn:mycelium.server:_track_session_access"
+      ],
+      "paths": [
+        "mycelium/server.py:423-470",
+        "mycelium/server.py:409-415",
+        "mycelium/server.py:473-495",
+        "mycelium/server.py:523-553",
+        "mycelium/server.py:498-520",
+        "mycelium/server.py:679-688"
+      ]
+    },
+    {
+      "id": "comp.write_path",
+      "label": "Write path",
+      "summary": "save / resolve / pin: dedup, embed, connect, protect.",
+      "primary_module": "mycelium.server",
+      "depends_on": [
+        "comp.substrate",
+        "comp.semantic",
+        "comp.graph_dynamics"
+      ],
+      "symbols": [
+        "fn:mycelium.server:_check_duplicates"
+      ],
+      "paths": [
+        "mycelium/server.py:707-742"
+      ]
+    },
+    {
+      "id": "comp.read_path",
+      "label": "Read path",
+      "summary": "recall / context / connections: FTS+semantic fusion, propagation.",
+      "primary_module": "mycelium.server",
+      "depends_on": [
+        "comp.substrate",
+        "comp.semantic",
+        "comp.graph_dynamics"
+      ],
+      "symbols": [],
+      "paths": []
+    },
+    {
+      "id": "comp.episodic",
+      "label": "Episodic / recent",
+      "summary": "recent(): time-ordered digest of what was just worked on.",
+      "primary_module": "mycelium.server",
+      "depends_on": [
+        "comp.substrate"
+      ],
+      "symbols": [
+        "fn:mycelium.server:_recent_rows",
+        "fn:mycelium.server:_recent_summary_line",
+        "fn:mycelium.server:_humanize_age",
+        "fn:mycelium.server:_column_exists"
+      ],
+      "paths": [
+        "mycelium/server.py:1209-1234",
+        "mycelium/server.py:1237-1251",
+        "mycelium/server.py:1193-1206",
+        "mycelium/server.py:1183-1190"
+      ]
+    },
+    {
+      "id": "comp.maintenance",
+      "label": "Maintenance",
+      "summary": "consolidate/forget/review/maintain: snapshot, cold-mark, protect, rescue.",
+      "primary_module": "mycelium.maintain",
+      "depends_on": [
+        "comp.substrate",
+        "comp.graph_dynamics"
+      ],
+      "symbols": [
+        "fn:mycelium.maintain:run_maintenance",
+        "fn:mycelium.maintain:_plan",
+        "fn:mycelium.maintain:_execute",
+        "fn:mycelium.maintain:_baseline",
+        "fn:mycelium.maintain:_is_protected",
+        "fn:mycelium.server:_protection_reason"
+      ],
+      "paths": [
+        "mycelium/maintain.py:227-280",
+        "mycelium/maintain.py:111-189",
+        "mycelium/maintain.py:192-224",
+        "mycelium/maintain.py:72-108",
+        "mycelium/maintain.py:45-64",
+        "mycelium/server.py:1394-1422"
+      ]
+    },
+    {
+      "id": "comp.discover",
+      "label": "Discover",
+      "summary": "Find hidden connections and rescue orphan memories.",
+      "primary_module": "mycelium.server",
+      "depends_on": [
+        "comp.substrate",
+        "comp.graph_dynamics"
+      ],
+      "symbols": [],
+      "paths": []
+    },
+    {
+      "id": "comp.foundry",
+      "label": "Foundry (behavioral memory)",
+      "summary": "Append-only decision log; queryable for pattern analysis. Separable.",
+      "primary_module": "mycelium.foundry",
+      "depends_on": [
+        "comp.config"
+      ],
+      "symbols": [
+        "fn:mycelium.foundry.publisher:publish",
+        "fn:mycelium.foundry.ingest:drain_all",
+        "fn:mycelium.foundry.ingest:drain_file",
+        "fn:mycelium.foundry.ingest:query",
+        "fn:mycelium.foundry.schema:init_schema"
+      ],
+      "paths": [
+        "mycelium/foundry/publisher.py:40-98",
+        "mycelium/foundry/ingest.py:104-116",
+        "mycelium/foundry/ingest.py:56-101",
+        "mycelium/foundry/ingest.py:119-171",
+        "mycelium/foundry/schema.py:71-78"
+      ]
+    },
+    {
+      "id": "comp.dashboard",
+      "label": "Dashboard",
+      "summary": "Read-only web viewer of the memory graph. Stdlib http.server.",
+      "primary_module": "mycelium.dashboard",
+      "depends_on": [
+        "comp.substrate"
+      ],
+      "symbols": [],
+      "paths": []
+    },
+    {
+      "id": "comp.cli",
+      "label": "CLI",
+      "summary": "Entrypoint: serve/init/config/dash/backfill-vectors/maintain/foundry.",
+      "primary_module": "mycelium.cli",
+      "depends_on": [
+        "comp.config"
+      ],
+      "symbols": [
+        "fn:mycelium.cli:main"
+      ],
+      "paths": [
+        "mycelium/cli.py:131-197"
+      ]
+    },
+    {
+      "id": "comp.evaluate",
+      "label": "Evaluate",
+      "summary": "Recall benchmark harness (paraphrase recall@k).",
+      "primary_module": "mycelium.evaluate",
+      "depends_on": [
+        "comp.substrate"
+      ],
+      "symbols": [
+        "fn:mycelium.evaluate:run_eval"
+      ],
+      "paths": [
+        "mycelium/evaluate.py:56-115"
+      ]
+    }
+  ],
+  "mcp_tools": [
+    {
+      "name": "connections",
+      "implemented_by": "comp.read_path",
+      "path": "mycelium/server.py:1694-1711",
+      "summary": "Show all connections for a specific memory - the local network topology."
+    },
+    {
+      "name": "consolidate",
+      "implemented_by": "comp.maintenance",
+      "path": "mycelium/server.py:1427-1477",
+      "summary": "Show memories ready for consolidation."
+    },
+    {
+      "name": "context",
+      "implemented_by": "comp.read_path",
+      "path": "mycelium/server.py:1074-1163",
+      "summary": "Load startup context - the hubs of your memory network."
+    },
+    {
+      "name": "discover",
+      "implemented_by": "comp.discover",
+      "path": "mycelium/server.py:1482-1609",
+      "summary": "Discover hidden connections in the memory network."
+    },
+    {
+      "name": "forget",
+      "implemented_by": "comp.maintenance",
+      "path": "mycelium/server.py:1614-1639",
+      "summary": "Delete a memory and all its connections."
+    },
+    {
+      "name": "maintain",
+      "implemented_by": "comp.maintenance",
+      "path": "mycelium/server.py:1664-1689",
+      "summary": "Periodic memory consolidation - snapshot, plan, cold-mark, orphan rescue."
+    },
+    {
+      "name": "pin",
+      "implemented_by": "comp.write_path",
+      "path": "mycelium/server.py:1644-1659",
+      "summary": "Pin or unpin a memory. Pinned memories' connections never decay below the"
+    },
+    {
+      "name": "recall",
+      "implemented_by": "comp.read_path",
+      "path": "mycelium/server.py:909-1069",
+      "summary": "Search memories and propagate through connections."
+    },
+    {
+      "name": "recent",
+      "implemented_by": "comp.episodic",
+      "path": "mycelium/server.py:1256-1295",
+      "summary": "Recent episodic digest - what's been worked on lately, newest first."
+    },
+    {
+      "name": "resolve",
+      "implemented_by": "comp.write_path",
+      "path": "mycelium/server.py:868-904",
+      "summary": "Create a disambiguation memory for an ambiguous term."
+    },
+    {
+      "name": "review",
+      "implemented_by": "comp.maintenance",
+      "path": "mycelium/server.py:1334-1386",
+      "summary": "Review the health of the memory network."
+    },
+    {
+      "name": "save",
+      "implemented_by": "comp.write_path",
+      "path": "mycelium/server.py:747-863",
+      "summary": "Save a memory. Keep it short and dense - one idea per memory."
+    }
+  ],
+  "docs": [
+    {
+      "path": "docs/README.md",
+      "headings": [
+        "mycelium docs"
+      ]
+    },
+    {
+      "path": "docs/benchmarks.md",
+      "headings": [
+        "Does semantic recall help? Benchmark it.",
+        "Should you enable it?",
+        "What the numbers look like",
+        "Honest caveats",
+        "Make it your own"
+      ]
+    },
+    {
+      "path": "docs/claude-md-primer.md",
+      "headings": [
+        "CLAUDE.md primer for mycelium",
+        "Mycelium \u2014 persistent memory",
+        "Foundry \u2014 behavioral memory (decisions log)",
+        "Short-Term Memory (STM) \u2014 optional"
+      ]
+    },
+    {
+      "path": "docs/concepts.md",
+      "headings": [
+        "Concepts \u2014 what mycelium actually is and how it works",
+        "The one-line version",
+        "The two memory cards",
+        "Semantic card \u2014 the core concepts",
+        "Conventions baked into maintenance",
+        "Lifecycle \u2014 what happens to a memory over time",
+        "Foundry \u2014 behavioral memory",
+        "All the MCP tools \u2014 when each is for"
+      ]
+    },
+    {
+      "path": "docs/configuration.md",
+      "headings": [
+        "Configuration",
+        "`[server]`",
+        "`[storage]`",
+        "`[memory]`",
+        "`[foundry]`",
+        "`[foundry.retention]`",
+        "`[semantic]`",
+        "Tuning by symptom"
+      ]
+    },
+    {
+      "path": "docs/design/module-decomposition.md",
+      "headings": [
+        "Why memory is its own module \u2014 Parnas 1971 applied to an agent",
+        "The paper in plain language",
+        "Mycelium is a Parnas module",
+        "\"Memory is guidance, system state is truth\" is a clean boundary",
+        "The pruning test \u2014 and mycelium passes it",
+        "The part Parnas didn't have: information hiding in the *attention* domain",
+        "How to apply this to your own integration",
+        "Further reading"
+      ]
+    },
+    {
+      "path": "docs/everyday-use.md",
+      "headings": [
+        "Everyday use: getting value out of mycelium, from personal to advanced",
+        "The one idea that changes everything",
+        "Keep your worlds separate with \"projects\"",
+        "What's worth telling it to remember",
+        "What NOT to save",
+        "What a useful session actually looks like",
+        "A gallery: all kinds of people, all kinds of uses",
+        "Climbing the ladder: technical and advanced use"
+      ]
+    },
+    {
+      "path": "docs/local-llm-maintenance.md",
+      "headings": [
+        "Local-LLM-assisted maintenance",
+        "What you need",
+        "export LOCAL_LLM_NOTHINK=1           # only for reasoning models \u2014 see gotcha below",
+        "The consolidation workflow",
+        "1. Find dense clusters worth folding",
+        "2. Dump the candidates for one project (id + text, one block each)",
+        "3. Let the local model DRAFT summaries + a conservative archive/keep split",
+        "4. YOU verify every proposed archive against reality, then act:"
+      ]
+    },
+    {
+      "path": "docs/recency-precision.md",
+      "headings": [
+        "Recency surfacing + prior-override precision",
+        "The two problems",
+        "1. `recent()` \u2014 the episodic view",
+        "2. `contradicts_prior` \u2014 prior-override salience",
+        "base knowledge says this edition is EOL \u2014 but you actually run it",
+        "Tunables",
+        "Benchmark: hubs are not recency",
+        "Biomimetic framing \u2014 *inspired-by, not literal*"
+      ]
+    },
+    {
+      "path": "docs/research/README.md",
+      "headings": [
+        "docs/research/",
+        "Contents"
+      ]
+    },
+    {
+      "path": "docs/research/mycelium-memory-governance.md",
+      "headings": [
+        "Mycelium: Memory Governance for Long-Running Agent Systems",
+        "A Context-Economy Architecture for Verifier-Mediated Agent Memory",
+        "Abstract",
+        "1. Introduction",
+        "2. Related Work and Positioning",
+        "3. Retrieval Is Not Memory",
+        "4. Memory as Governance",
+        "5. Governance Operations"
+      ]
+    },
+    {
+      "path": "docs/seeding.md",
+      "headings": [
+        "Seeding mycelium from your existing stuff",
+        "Recipe 1: from your existing CLAUDE.md / AGENTS.md / project notes",
+        "Recipe 2: from a project tree scan",
+        "Recipe 3: from a curated seed file you write yourself",
+        "project: acme-api",
+        "project: acme-web",
+        "Recipe 4: distill the current conversation",
+        "Recipe 5: from shell history"
+      ]
+    }
+  ],
+  "important_paths": [
+    {
+      "path": "mycelium/server.py",
+      "role": "MCP server + 12 tools + engine (large module)"
+    },
+    {
+      "path": "mycelium/embeddings.py",
+      "role": "embedding client + vector search"
+    },
+    {
+      "path": "mycelium/config.py",
+      "role": "TOML+env config, search paths"
+    },
+    {
+      "path": "mycelium/maintain.py",
+      "role": "consolidation/protection/orphan-rescue plan+execute"
+    },
+    {
+      "path": "mycelium/foundry/",
+      "role": "behavioral memory subsystem (separable)"
+    },
+    {
+      "path": "docs/",
+      "role": "canonical prose the map points into"
+    }
+  ],
+  "build_and_test": {
+    "install": "pip install -e .",
+    "test": "pytest -q",
+    "python": ">=3.11"
+  },
+  "terminology": {
+    "hot": "recently/frequently accessed memory tier",
+    "cold": "consolidated summary tier, decay-resistant",
+    "substrate": "shared db/config/FTS/format helpers under every tool",
+    "propagation": "one-hop spread through connections during recall"
+  }
+}
