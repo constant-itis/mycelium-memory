@@ -1,0 +1,55 @@
+# mycelium
+
+> Persistent memory for LLM CLIs that behaves like a brain, not a database.
+
+Machine-readable map for agents. Read `agent-index.json` first to jump
+straight to a file span instead of crawling; see `AGENTS.md` for the protocol.
+
+## Bootstrap
+- [AGENTS.md](AGENTS.md): how agents should work in this repo; read first.
+- [agent-index.json](agent-index.json): concepts, components and tools mapped to file paths and line spans.
+- [agent-graph.json](agent-graph.json): full structural graph (every symbol, import and call edge).
+
+## Docs
+- [README.md](docs/README.md): mycelium docs
+- [benchmarks.md](docs/benchmarks.md): Does semantic recall help? Benchmark it.
+- [claude-md-primer.md](docs/claude-md-primer.md): CLAUDE.md primer for mycelium
+- [concepts.md](docs/concepts.md): Concepts - what mycelium actually is and how it works
+- [configuration.md](docs/configuration.md): Configuration
+- [module-decomposition.md](docs/design/module-decomposition.md): Why memory is its own module - Parnas 1971 applied to an agent
+- [everyday-use.md](docs/everyday-use.md): Everyday use: getting value out of mycelium, from personal to advanced
+- [local-llm-maintenance.md](docs/local-llm-maintenance.md): Local-LLM-assisted maintenance
+- [recency-precision.md](docs/recency-precision.md): Recency surfacing + prior-override precision
+- [README.md](docs/research/README.md): docs/research/
+- [mycelium-memory-governance.md](docs/research/mycelium-memory-governance.md): Mycelium: Memory Governance for Long-Running Agent Systems
+- [seeding.md](docs/seeding.md): Seeding mycelium from your existing stuff
+
+## MCP tools
+- `connections` (mycelium/server.py:1694-1711): Show all connections for a specific memory - the local network topology.
+- `consolidate` (mycelium/server.py:1427-1477): Show memories ready for consolidation.
+- `context` (mycelium/server.py:1074-1163): Load startup context - the hubs of your memory network.
+- `discover` (mycelium/server.py:1482-1609): Discover hidden connections in the memory network.
+- `forget` (mycelium/server.py:1614-1639): Delete a memory and all its connections.
+- `maintain` (mycelium/server.py:1664-1689): Periodic memory consolidation - snapshot, plan, cold-mark, orphan rescue.
+- `pin` (mycelium/server.py:1644-1659): Pin or unpin a memory. Pinned memories' connections never decay below the
+- `recall` (mycelium/server.py:909-1069): Search memories and propagate through connections.
+- `recent` (mycelium/server.py:1256-1295): Recent episodic digest - what's been worked on lately, newest first.
+- `resolve` (mycelium/server.py:868-904): Create a disambiguation memory for an ambiguous term.
+- `review` (mycelium/server.py:1334-1386): Review the health of the memory network.
+- `save` (mycelium/server.py:747-863): Save a memory. Keep it short and dense - one idea per memory.
+
+## Components
+- `comp.substrate`: Storage, config, FTS and formatting that every tool composes.
+- `comp.config`: TOML + env config loading, search paths, defaults.
+- `comp.semantic`: Embedding client and vector search; embed-on-save, semantic recall.
+- `comp.graph_dynamics`: Decay, co-access strengthening, neighbor walk: the neural mechanics.
+- `comp.write_path`: save / resolve / pin: dedup, embed, connect, protect.
+- `comp.read_path`: recall / context / connections: FTS+semantic fusion, propagation.
+- `comp.episodic`: recent(): time-ordered digest of what was just worked on.
+- `comp.maintenance`: consolidate/forget/review/maintain: snapshot, cold-mark, protect, rescue.
+- `comp.discover`: Find hidden connections and rescue orphan memories.
+- `comp.foundry`: Append-only decision log; queryable for pattern analysis. Separable.
+- `comp.dashboard`: Read-only web viewer of the memory graph. Stdlib http.server.
+- `comp.cli`: Entrypoint: serve/init/config/dash/backfill-vectors/maintain/foundry.
+- `comp.evaluate`: Recall benchmark harness (paraphrase recall@k).
+

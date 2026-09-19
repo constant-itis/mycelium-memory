@@ -1,0 +1,2928 @@
+{
+  "schema": "mycelium.agent-graph/v1",
+  "root": "mycelium",
+  "modules": [
+    {
+      "id": "mod:mycelium",
+      "module": "mycelium",
+      "path": "mycelium/__init__.py",
+      "loc": 4,
+      "doc": "Mycelium \u2014 neural-style persistent memory for Claude Code."
+    },
+    {
+      "id": "mod:mycelium.cli",
+      "module": "mycelium.cli",
+      "path": "mycelium/cli.py",
+      "loc": 202,
+      "doc": "mycelium CLI."
+    },
+    {
+      "id": "mod:mycelium.config",
+      "module": "mycelium.config",
+      "path": "mycelium/config.py",
+      "loc": 225,
+      "doc": "Config loader."
+    },
+    {
+      "id": "mod:mycelium.dashboard",
+      "module": "mycelium.dashboard",
+      "path": "mycelium/dashboard/__init__.py",
+      "loc": 396,
+      "doc": "Read-only web graph explorer for a Mycelium memory database."
+    },
+    {
+      "id": "mod:mycelium.embeddings",
+      "module": "mycelium.embeddings",
+      "path": "mycelium/embeddings.py",
+      "loc": 122,
+      "doc": "Optional embedding client for semantic recall."
+    },
+    {
+      "id": "mod:mycelium.evaluate",
+      "module": "mycelium.evaluate",
+      "path": "mycelium/evaluate.py",
+      "loc": 141,
+      "doc": "Reproducible recall benchmark: lexical vs hybrid (semantic) recall."
+    },
+    {
+      "id": "mod:mycelium.foundry",
+      "module": "mycelium.foundry",
+      "path": "mycelium/foundry/__init__.py",
+      "loc": 15,
+      "doc": "Foundry \u2014 behavioral memory card."
+    },
+    {
+      "id": "mod:mycelium.foundry.ingest",
+      "module": "mycelium.foundry.ingest",
+      "path": "mycelium/foundry/ingest.py",
+      "loc": 172,
+      "doc": "Drain JSONL decision logs into SQLite foundry_decisions."
+    },
+    {
+      "id": "mod:mycelium.foundry.publisher",
+      "module": "mycelium.foundry.publisher",
+      "path": "mycelium/foundry/publisher.py",
+      "loc": 99,
+      "doc": "Fail-soft JSONL writer. Never blocks the caller, never raises."
+    },
+    {
+      "id": "mod:mycelium.foundry.schema",
+      "module": "mycelium.foundry.schema",
+      "path": "mycelium/foundry/schema.py",
+      "loc": 79,
+      "doc": "Foundry SQLite schema. Idempotent \u2014 safe to call on every connection."
+    },
+    {
+      "id": "mod:mycelium.maintain",
+      "module": "mycelium.maintain",
+      "path": "mycelium/maintain.py",
+      "loc": 325,
+      "doc": "Periodic memory consolidation pass."
+    },
+    {
+      "id": "mod:mycelium.server",
+      "module": "mycelium.server",
+      "path": "mycelium/server.py",
+      "loc": 1818,
+      "doc": "Mycelium \u2014 neural-style memory MCP server."
+    }
+  ],
+  "symbols": [
+    {
+      "id": "fn:mycelium.cli:_cmd_serve",
+      "kind": "function",
+      "module": "mycelium.cli",
+      "name": "_cmd_serve",
+      "qualname": "_cmd_serve",
+      "path": "mycelium/cli.py",
+      "line_start": 12,
+      "line_end": 17,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.cli:_cmd_init",
+      "kind": "function",
+      "module": "mycelium.cli",
+      "name": "_cmd_init",
+      "qualname": "_cmd_init",
+      "path": "mycelium/cli.py",
+      "line_start": 20,
+      "line_end": 39,
+      "doc": "Copy the bundled config.example.toml to a user-writable path.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.cli:_cmd_maintain",
+      "kind": "function",
+      "module": "mycelium.cli",
+      "name": "_cmd_maintain",
+      "qualname": "_cmd_maintain",
+      "path": "mycelium/cli.py",
+      "line_start": 42,
+      "line_end": 55,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.cli:_cmd_foundry_ingest",
+      "kind": "function",
+      "module": "mycelium.cli",
+      "name": "_cmd_foundry_ingest",
+      "qualname": "_cmd_foundry_ingest",
+      "path": "mycelium/cli.py",
+      "line_start": 58,
+      "line_end": 63,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.cli:_cmd_foundry_query",
+      "kind": "function",
+      "module": "mycelium.cli",
+      "name": "_cmd_foundry_query",
+      "qualname": "_cmd_foundry_query",
+      "path": "mycelium/cli.py",
+      "line_start": 66,
+      "line_end": 85,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.cli:_cmd_dash",
+      "kind": "function",
+      "module": "mycelium.cli",
+      "name": "_cmd_dash",
+      "qualname": "_cmd_dash",
+      "path": "mycelium/cli.py",
+      "line_start": 88,
+      "line_end": 91,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.cli:_cmd_config",
+      "kind": "function",
+      "module": "mycelium.cli",
+      "name": "_cmd_config",
+      "qualname": "_cmd_config",
+      "path": "mycelium/cli.py",
+      "line_start": 94,
+      "line_end": 99,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.cli:_cmd_eval",
+      "kind": "function",
+      "module": "mycelium.cli",
+      "name": "_cmd_eval",
+      "qualname": "_cmd_eval",
+      "path": "mycelium/cli.py",
+      "line_start": 102,
+      "line_end": 113,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.cli:_cmd_backfill_vectors",
+      "kind": "function",
+      "module": "mycelium.cli",
+      "name": "_cmd_backfill_vectors",
+      "qualname": "_cmd_backfill_vectors",
+      "path": "mycelium/cli.py",
+      "line_start": 116,
+      "line_end": 128,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.cli:main",
+      "kind": "function",
+      "module": "mycelium.cli",
+      "name": "main",
+      "qualname": "main",
+      "path": "mycelium/cli.py",
+      "line_start": 131,
+      "line_end": 197,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.config:_config_search_paths",
+      "kind": "function",
+      "module": "mycelium.config",
+      "name": "_config_search_paths",
+      "qualname": "_config_search_paths",
+      "path": "mycelium/config.py",
+      "line_start": 73,
+      "line_end": 83,
+      "doc": "Where to look for config.toml, in order of precedence.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.config:_deep_merge",
+      "kind": "function",
+      "module": "mycelium.config",
+      "name": "_deep_merge",
+      "qualname": "_deep_merge",
+      "path": "mycelium/config.py",
+      "line_start": 86,
+      "line_end": 94,
+      "doc": "Recursively merge overlay into base (overlay wins on leaves).",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.config:_coerce",
+      "kind": "function",
+      "module": "mycelium.config",
+      "name": "_coerce",
+      "qualname": "_coerce",
+      "path": "mycelium/config.py",
+      "line_start": 97,
+      "line_end": 107,
+      "doc": "Coerce a string env var to the type of the existing default.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.config:_apply_env_overrides",
+      "kind": "function",
+      "module": "mycelium.config",
+      "name": "_apply_env_overrides",
+      "qualname": "_apply_env_overrides",
+      "path": "mycelium/config.py",
+      "line_start": 110,
+      "line_end": 136,
+      "doc": "MYCELIUM_SERVER_PORT=9000 -> cfg['server']['port'] = 9000.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.config:_expand_paths",
+      "kind": "function",
+      "module": "mycelium.config",
+      "name": "_expand_paths",
+      "qualname": "_expand_paths",
+      "path": "mycelium/config.py",
+      "line_start": 139,
+      "line_end": 153,
+      "doc": "Expand ~ and $VAR in known path keys.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "cls:mycelium.config:Config",
+      "kind": "class",
+      "module": "mycelium.config",
+      "name": "Config",
+      "qualname": "Config",
+      "path": "mycelium/config.py",
+      "line_start": 157,
+      "line_end": 190,
+      "doc": null,
+      "decorators": [
+        "dataclass"
+      ],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.config:Config.semantic_enabled",
+      "kind": "method",
+      "module": "mycelium.config",
+      "name": "semantic_enabled",
+      "qualname": "Config.semantic_enabled",
+      "path": "mycelium/config.py",
+      "line_start": 167,
+      "line_end": 168,
+      "doc": null,
+      "decorators": [
+        "property"
+      ],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.config:Config.db_path",
+      "kind": "method",
+      "module": "mycelium.config",
+      "name": "db_path",
+      "qualname": "Config.db_path",
+      "path": "mycelium/config.py",
+      "line_start": 171,
+      "line_end": 172,
+      "doc": null,
+      "decorators": [
+        "property"
+      ],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.config:Config.foundry_db_path",
+      "kind": "method",
+      "module": "mycelium.config",
+      "name": "foundry_db_path",
+      "qualname": "Config.foundry_db_path",
+      "path": "mycelium/config.py",
+      "line_start": 175,
+      "line_end": 176,
+      "doc": null,
+      "decorators": [
+        "property"
+      ],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.config:Config.foundry_log_dir",
+      "kind": "method",
+      "module": "mycelium.config",
+      "name": "foundry_log_dir",
+      "qualname": "Config.foundry_log_dir",
+      "path": "mycelium/config.py",
+      "line_start": 179,
+      "line_end": 180,
+      "doc": null,
+      "decorators": [
+        "property"
+      ],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.config:Config.to_dict",
+      "kind": "method",
+      "module": "mycelium.config",
+      "name": "to_dict",
+      "qualname": "Config.to_dict",
+      "path": "mycelium/config.py",
+      "line_start": 182,
+      "line_end": 190,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.config:load",
+      "kind": "function",
+      "module": "mycelium.config",
+      "name": "load",
+      "qualname": "load",
+      "path": "mycelium/config.py",
+      "line_start": 193,
+      "line_end": 224,
+      "doc": "Load config from disk + env, layered over defaults.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "cls:mycelium.dashboard:_DB",
+      "kind": "class",
+      "module": "mycelium.dashboard",
+      "name": "_DB",
+      "qualname": "_DB",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 39,
+      "line_end": 50,
+      "doc": "Opens the memory database read-only. Raises if it does not exist.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_DB.__init__",
+      "kind": "method",
+      "module": "mycelium.dashboard",
+      "name": "__init__",
+      "qualname": "_DB.__init__",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 42,
+      "line_end": 43,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_DB.connect",
+      "kind": "method",
+      "module": "mycelium.dashboard",
+      "name": "connect",
+      "qualname": "_DB.connect",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 45,
+      "line_end": 50,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_parse_csv",
+      "kind": "function",
+      "module": "mycelium.dashboard",
+      "name": "_parse_csv",
+      "qualname": "_parse_csv",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 53,
+      "line_end": 54,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_stats",
+      "kind": "function",
+      "module": "mycelium.dashboard",
+      "name": "_stats",
+      "qualname": "_stats",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 61,
+      "line_end": 74,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_projects",
+      "kind": "function",
+      "module": "mycelium.dashboard",
+      "name": "_projects",
+      "qualname": "_projects",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 77,
+      "line_end": 82,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_graph_projects",
+      "kind": "function",
+      "module": "mycelium.dashboard",
+      "name": "_graph_projects",
+      "qualname": "_graph_projects",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 85,
+      "line_end": 129,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_graph_project",
+      "kind": "function",
+      "module": "mycelium.dashboard",
+      "name": "_graph_project",
+      "qualname": "_graph_project",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 132,
+      "line_end": 159,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_graph_ego",
+      "kind": "function",
+      "module": "mycelium.dashboard",
+      "name": "_graph_ego",
+      "qualname": "_graph_ego",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 162,
+      "line_end": 194,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_graph_full",
+      "kind": "function",
+      "module": "mycelium.dashboard",
+      "name": "_graph_full",
+      "qualname": "_graph_full",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 197,
+      "line_end": 212,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_memory_detail",
+      "kind": "function",
+      "module": "mycelium.dashboard",
+      "name": "_memory_detail",
+      "qualname": "_memory_detail",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 215,
+      "line_end": 233,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_search",
+      "kind": "function",
+      "module": "mycelium.dashboard",
+      "name": "_search",
+      "qualname": "_search",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 236,
+      "line_end": 254,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_recent",
+      "kind": "function",
+      "module": "mycelium.dashboard",
+      "name": "_recent",
+      "qualname": "_recent",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 257,
+      "line_end": 273,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:_make_handler",
+      "kind": "function",
+      "module": "mycelium.dashboard",
+      "name": "_make_handler",
+      "qualname": "_make_handler",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 280,
+      "line_end": 370,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.dashboard:serve",
+      "kind": "function",
+      "module": "mycelium.dashboard",
+      "name": "serve",
+      "qualname": "serve",
+      "path": "mycelium/dashboard/__init__.py",
+      "line_start": 373,
+      "line_end": 395,
+      "doc": "Start the read-only dashboard HTTP server (blocking).",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.embeddings:_prefixes",
+      "kind": "function",
+      "module": "mycelium.embeddings",
+      "name": "_prefixes",
+      "qualname": "_prefixes",
+      "path": "mycelium/embeddings.py",
+      "line_start": 31,
+      "line_end": 36,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.embeddings:_post",
+      "kind": "function",
+      "module": "mycelium.embeddings",
+      "name": "_post",
+      "qualname": "_post",
+      "path": "mycelium/embeddings.py",
+      "line_start": 39,
+      "line_end": 47,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.embeddings:_chunks",
+      "kind": "function",
+      "module": "mycelium.embeddings",
+      "name": "_chunks",
+      "qualname": "_chunks",
+      "path": "mycelium/embeddings.py",
+      "line_start": 50,
+      "line_end": 52,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.embeddings:_normalize",
+      "kind": "function",
+      "module": "mycelium.embeddings",
+      "name": "_normalize",
+      "qualname": "_normalize",
+      "path": "mycelium/embeddings.py",
+      "line_start": 55,
+      "line_end": 57,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.embeddings:_mean",
+      "kind": "function",
+      "module": "mycelium.embeddings",
+      "name": "_mean",
+      "qualname": "_mean",
+      "path": "mycelium/embeddings.py",
+      "line_start": 60,
+      "line_end": 66,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.embeddings:embed_document",
+      "kind": "function",
+      "module": "mycelium.embeddings",
+      "name": "embed_document",
+      "qualname": "embed_document",
+      "path": "mycelium/embeddings.py",
+      "line_start": 69,
+      "line_end": 75,
+      "doc": "One L2-normalized vector for a memory. Long content is chunked and the",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.embeddings:embed_query",
+      "kind": "function",
+      "module": "mycelium.embeddings",
+      "name": "embed_query",
+      "qualname": "embed_query",
+      "path": "mycelium/embeddings.py",
+      "line_start": 78,
+      "line_end": 81,
+      "doc": "One L2-normalized query vector.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.embeddings:to_blob",
+      "kind": "function",
+      "module": "mycelium.embeddings",
+      "name": "to_blob",
+      "qualname": "to_blob",
+      "path": "mycelium/embeddings.py",
+      "line_start": 84,
+      "line_end": 86,
+      "doc": "Serialize a vector to a compact little-endian float32 BLOB.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.embeddings:from_blob",
+      "kind": "function",
+      "module": "mycelium.embeddings",
+      "name": "from_blob",
+      "qualname": "from_blob",
+      "path": "mycelium/embeddings.py",
+      "line_start": 89,
+      "line_end": 90,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.embeddings:cosine_sims",
+      "kind": "function",
+      "module": "mycelium.embeddings",
+      "name": "cosine_sims",
+      "qualname": "cosine_sims",
+      "path": "mycelium/embeddings.py",
+      "line_start": 93,
+      "line_end": 112,
+      "doc": "{memory_id: cosine} for rows of (memory_id, blob).",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.embeddings:healthy",
+      "kind": "function",
+      "module": "mycelium.embeddings",
+      "name": "healthy",
+      "qualname": "healthy",
+      "path": "mycelium/embeddings.py",
+      "line_start": 115,
+      "line_end": 121,
+      "doc": "True if the embedding endpoint answers \u2014 used for graceful fallback.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.evaluate:_ranked_ids",
+      "kind": "function",
+      "module": "mycelium.evaluate",
+      "name": "_ranked_ids",
+      "qualname": "_ranked_ids",
+      "path": "mycelium/evaluate.py",
+      "line_start": 29,
+      "line_end": 38,
+      "doc": "Pull memory ids, in order, from recall()'s formatted output.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.evaluate:_score",
+      "kind": "function",
+      "module": "mycelium.evaluate",
+      "name": "_score",
+      "qualname": "_score",
+      "path": "mycelium/evaluate.py",
+      "line_start": 41,
+      "line_end": 53,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.evaluate:run_eval",
+      "kind": "function",
+      "module": "mycelium.evaluate",
+      "name": "run_eval",
+      "qualname": "run_eval",
+      "path": "mycelium/evaluate.py",
+      "line_start": 56,
+      "line_end": 115,
+      "doc": "Returns {dataset, n_memories, n_queries, semantic_enabled, lexical, hybrid}.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.evaluate:format_report",
+      "kind": "function",
+      "module": "mycelium.evaluate",
+      "name": "format_report",
+      "qualname": "format_report",
+      "path": "mycelium/evaluate.py",
+      "line_start": 118,
+      "line_end": 140,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.foundry.ingest:_to_row",
+      "kind": "function",
+      "module": "mycelium.foundry.ingest",
+      "name": "_to_row",
+      "qualname": "_to_row",
+      "path": "mycelium/foundry/ingest.py",
+      "line_start": 26,
+      "line_end": 53,
+      "doc": "Convert a JSON record to the parameter tuple for INSERT_SQL.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.foundry.ingest:drain_file",
+      "kind": "function",
+      "module": "mycelium.foundry.ingest",
+      "name": "drain_file",
+      "qualname": "drain_file",
+      "path": "mycelium/foundry/ingest.py",
+      "line_start": 56,
+      "line_end": 101,
+      "doc": "Drain one JSONL file. Returns count of rows ingested this call.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.foundry.ingest:drain_all",
+      "kind": "function",
+      "module": "mycelium.foundry.ingest",
+      "name": "drain_all",
+      "qualname": "drain_all",
+      "path": "mycelium/foundry/ingest.py",
+      "line_start": 104,
+      "line_end": 116,
+      "doc": "Drain every *.jsonl in log_dir into the foundry DB. Returns total rows.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.foundry.ingest:query",
+      "kind": "function",
+      "module": "mycelium.foundry.ingest",
+      "name": "query",
+      "qualname": "query",
+      "path": "mycelium/foundry/ingest.py",
+      "line_start": 119,
+      "line_end": 171,
+      "doc": "Read decisions back. Filter on any combination of fields.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.foundry.publisher:set_log_dir",
+      "kind": "function",
+      "module": "mycelium.foundry.publisher",
+      "name": "set_log_dir",
+      "qualname": "set_log_dir",
+      "path": "mycelium/foundry/publisher.py",
+      "line_start": 19,
+      "line_end": 22,
+      "doc": "Pin the log directory at runtime (called by server.set_config).",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.foundry.publisher:_resolve_log_dir",
+      "kind": "function",
+      "module": "mycelium.foundry.publisher",
+      "name": "_resolve_log_dir",
+      "qualname": "_resolve_log_dir",
+      "path": "mycelium/foundry/publisher.py",
+      "line_start": 25,
+      "line_end": 33,
+      "doc": "Where to write today's JSONL. Order: explicit override > env var > default.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.foundry.publisher:_log_path",
+      "kind": "function",
+      "module": "mycelium.foundry.publisher",
+      "name": "_log_path",
+      "qualname": "_log_path",
+      "path": "mycelium/foundry/publisher.py",
+      "line_start": 36,
+      "line_end": 37,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.foundry.publisher:publish",
+      "kind": "function",
+      "module": "mycelium.foundry.publisher",
+      "name": "publish",
+      "qualname": "publish",
+      "path": "mycelium/foundry/publisher.py",
+      "line_start": 40,
+      "line_end": 98,
+      "doc": "Append one decision row to today's JSONL.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.foundry.schema:connect",
+      "kind": "function",
+      "module": "mycelium.foundry.schema",
+      "name": "connect",
+      "qualname": "connect",
+      "path": "mycelium/foundry/schema.py",
+      "line_start": 61,
+      "line_end": 68,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.foundry.schema:init_schema",
+      "kind": "function",
+      "module": "mycelium.foundry.schema",
+      "name": "init_schema",
+      "qualname": "init_schema",
+      "path": "mycelium/foundry/schema.py",
+      "line_start": 71,
+      "line_end": 78,
+      "doc": "Apply schema. Idempotent.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.maintain:_is_protected",
+      "kind": "function",
+      "module": "mycelium.maintain",
+      "name": "_is_protected",
+      "qualname": "_is_protected",
+      "path": "mycelium/maintain.py",
+      "line_start": 45,
+      "line_end": 64,
+      "doc": "memory tuple shape: (id, content, project, tier, last_accessed, confidence, pinned).",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.maintain:_baseline",
+      "kind": "function",
+      "module": "mycelium.maintain",
+      "name": "_baseline",
+      "qualname": "_baseline",
+      "path": "mycelium/maintain.py",
+      "line_start": 72,
+      "line_end": 108,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.maintain:_plan",
+      "kind": "function",
+      "module": "mycelium.maintain",
+      "name": "_plan",
+      "qualname": "_plan",
+      "path": "mycelium/maintain.py",
+      "line_start": 111,
+      "line_end": 189,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.maintain:_execute",
+      "kind": "function",
+      "module": "mycelium.maintain",
+      "name": "_execute",
+      "qualname": "_execute",
+      "path": "mycelium/maintain.py",
+      "line_start": 192,
+      "line_end": 224,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.maintain:run_maintenance",
+      "kind": "function",
+      "module": "mycelium.maintain",
+      "name": "run_maintenance",
+      "qualname": "run_maintenance",
+      "path": "mycelium/maintain.py",
+      "line_start": 227,
+      "line_end": 280,
+      "doc": "Run the four-phase consolidation. Default is dry-run (no writes).",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.maintain:format_report",
+      "kind": "function",
+      "module": "mycelium.maintain",
+      "name": "format_report",
+      "qualname": "format_report",
+      "path": "mycelium/maintain.py",
+      "line_start": 283,
+      "line_end": 324,
+      "doc": "Render a run_maintenance() result as a readable report.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_cfg",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_cfg",
+      "qualname": "_cfg",
+      "path": "mycelium/server.py",
+      "line_start": 42,
+      "line_end": 46,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:set_config",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "set_config",
+      "qualname": "set_config",
+      "path": "mycelium/server.py",
+      "line_start": 49,
+      "line_end": 57,
+      "doc": "Override the runtime config \u2014 useful for tests and the CLI.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:get_db",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "get_db",
+      "qualname": "get_db",
+      "path": "mycelium/server.py",
+      "line_start": 73,
+      "line_end": 90,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:resilient",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "resilient",
+      "qualname": "resilient",
+      "path": "mycelium/server.py",
+      "line_start": 93,
+      "line_end": 155,
+      "doc": "Wrap an MCP tool with a connection-cleanup net + transient-error retry.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_init_schema",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_init_schema",
+      "qualname": "_init_schema",
+      "path": "mycelium/server.py",
+      "line_start": 158,
+      "line_end": 276,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_now",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_now",
+      "qualname": "_now",
+      "path": "mycelium/server.py",
+      "line_start": 280,
+      "line_end": 281,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_log_embed_failure",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_log_embed_failure",
+      "qualname": "_log_embed_failure",
+      "path": "mycelium/server.py",
+      "line_start": 284,
+      "line_end": 293,
+      "doc": "Log an embed failure at WRITE TIME so it is visible immediately, not only",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_log_stale_vectors",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_log_stale_vectors",
+      "qualname": "_log_stale_vectors",
+      "path": "mycelium/server.py",
+      "line_start": 301,
+      "line_end": 317,
+      "doc": "Warn (once per stale combo) when memory_vectors holds vectors from a model",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_semantic_sims",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_semantic_sims",
+      "qualname": "_semantic_sims",
+      "path": "mycelium/server.py",
+      "line_start": 321,
+      "line_end": 348,
+      "doc": "{memory_id: cosine} over stored vectors PRODUCED BY THE ACTIVE MODEL.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_embed_memory",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_embed_memory",
+      "qualname": "_embed_memory",
+      "path": "mycelium/server.py",
+      "line_start": 351,
+      "line_end": 372,
+      "doc": "Best-effort: embed one memory and upsert its vector. Never raises.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:backfill_vectors",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "backfill_vectors",
+      "qualname": "backfill_vectors",
+      "path": "mycelium/server.py",
+      "line_start": 375,
+      "line_end": 406,
+      "doc": "Embed all memories into memory_vectors. Idempotent + resumable: skips",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_decay_strength",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_decay_strength",
+      "qualname": "_decay_strength",
+      "path": "mycelium/server.py",
+      "line_start": 409,
+      "line_end": 415,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_apply_decay",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_apply_decay",
+      "qualname": "_apply_decay",
+      "path": "mycelium/server.py",
+      "line_start": 423,
+      "line_end": 470,
+      "doc": "Apply decay to all connections, prune dead ones. Pinned memories get a floor.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_touch_memory",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_touch_memory",
+      "qualname": "_touch_memory",
+      "path": "mycelium/server.py",
+      "line_start": 473,
+      "line_end": 495,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_strengthen_connection",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_strengthen_connection",
+      "qualname": "_strengthen_connection",
+      "path": "mycelium/server.py",
+      "line_start": 498,
+      "line_end": 520,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_get_neighbors",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_get_neighbors",
+      "qualname": "_get_neighbors",
+      "path": "mycelium/server.py",
+      "line_start": 523,
+      "line_end": 553,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_sanitize_fts_query",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_sanitize_fts_query",
+      "qualname": "_sanitize_fts_query",
+      "path": "mycelium/server.py",
+      "line_start": 573,
+      "line_end": 581,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_fts_search",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_fts_search",
+      "qualname": "_fts_search",
+      "path": "mycelium/server.py",
+      "line_start": 584,
+      "line_end": 654,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_format_memory",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_format_memory",
+      "qualname": "_format_memory",
+      "path": "mycelium/server.py",
+      "line_start": 657,
+      "line_end": 670,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_track_session_access",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_track_session_access",
+      "qualname": "_track_session_access",
+      "path": "mycelium/server.py",
+      "line_start": 679,
+      "line_end": 688,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_check_duplicates",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_check_duplicates",
+      "qualname": "_check_duplicates",
+      "path": "mycelium/server.py",
+      "line_start": 707,
+      "line_end": 742,
+      "doc": null,
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:save",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "save",
+      "qualname": "save",
+      "path": "mycelium/server.py",
+      "line_start": 747,
+      "line_end": 863,
+      "doc": "Save a memory. Keep it short and dense \u2014 one idea per memory.",
+      "decorators": [
+        "mcp.tool",
+        "resilient"
+      ],
+      "mcp_tool": true
+    },
+    {
+      "id": "fn:mycelium.server:resolve",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "resolve",
+      "qualname": "resolve",
+      "path": "mycelium/server.py",
+      "line_start": 868,
+      "line_end": 904,
+      "doc": "Create a disambiguation memory for an ambiguous term.",
+      "decorators": [
+        "mcp.tool",
+        "resilient"
+      ],
+      "mcp_tool": true
+    },
+    {
+      "id": "fn:mycelium.server:recall",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "recall",
+      "qualname": "recall",
+      "path": "mycelium/server.py",
+      "line_start": 909,
+      "line_end": 1069,
+      "doc": "Search memories and propagate through connections.",
+      "decorators": [
+        "mcp.tool",
+        "resilient"
+      ],
+      "mcp_tool": true
+    },
+    {
+      "id": "fn:mycelium.server:context",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "context",
+      "qualname": "context",
+      "path": "mycelium/server.py",
+      "line_start": 1074,
+      "line_end": 1163,
+      "doc": "Load startup context \u2014 the hubs of your memory network.",
+      "decorators": [
+        "mcp.tool",
+        "resilient"
+      ],
+      "mcp_tool": true
+    },
+    {
+      "id": "fn:mycelium.server:_column_exists",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_column_exists",
+      "qualname": "_column_exists",
+      "path": "mycelium/server.py",
+      "line_start": 1183,
+      "line_end": 1190,
+      "doc": "True if `col` exists on `table`. Lets recent() run on schemas both before",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_humanize_age",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_humanize_age",
+      "qualname": "_humanize_age",
+      "path": "mycelium/server.py",
+      "line_start": 1193,
+      "line_end": 1206,
+      "doc": "Compact age like '9m' / '3h' / '5d' from an ISO timestamp.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_recent_rows",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_recent_rows",
+      "qualname": "_recent_rows",
+      "path": "mycelium/server.py",
+      "line_start": 1209,
+      "line_end": 1234,
+      "doc": "Recency-ranked memories (episodic view), newest first. READ-ONLY: no",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:_recent_summary_line",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_recent_summary_line",
+      "qualname": "_recent_summary_line",
+      "path": "mycelium/server.py",
+      "line_start": 1237,
+      "line_end": 1251,
+      "doc": "One dense line for the digest: id, age, markers, trimmed content.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:recent",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "recent",
+      "qualname": "recent",
+      "path": "mycelium/server.py",
+      "line_start": 1256,
+      "line_end": 1295,
+      "doc": "Recent episodic digest \u2014 what's been worked on lately, newest first.",
+      "decorators": [
+        "mcp.tool",
+        "resilient"
+      ],
+      "mcp_tool": true
+    },
+    {
+      "id": "fn:mycelium.server:wake_route",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "wake_route",
+      "qualname": "wake_route",
+      "path": "mycelium/server.py",
+      "line_start": 1299,
+      "line_end": 1329,
+      "doc": "Read-only recency digest for a SessionStart shell hook to curl.",
+      "decorators": [
+        "mcp.custom_route"
+      ],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:review",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "review",
+      "qualname": "review",
+      "path": "mycelium/server.py",
+      "line_start": 1334,
+      "line_end": 1386,
+      "doc": "Review the health of the memory network.",
+      "decorators": [
+        "mcp.tool",
+        "resilient"
+      ],
+      "mcp_tool": true
+    },
+    {
+      "id": "fn:mycelium.server:_protection_reason",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_protection_reason",
+      "qualname": "_protection_reason",
+      "path": "mycelium/server.py",
+      "line_start": 1394,
+      "line_end": 1422,
+      "doc": "Why a memory must NOT be auto-forgotten, or None if it is fair game.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
+      "id": "fn:mycelium.server:consolidate",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "consolidate",
+      "qualname": "consolidate",
+      "path": "mycelium/server.py",
+      "line_start": 1427,
+      "line_end": 1477,
+      "doc": "Show memories ready for consolidation.",
+      "decorators": [
+        "mcp.tool",
+        "resilient"
+      ],
+      "mcp_tool": true
+    },
+    {
+      "id": "fn:mycelium.server:discover",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "discover",
+      "qualname": "discover",
+      "path": "mycelium/server.py",
+      "line_start": 1482,
+      "line_end": 1609,
+      "doc": "Discover hidden connections in the memory network.",
+      "decorators": [
+        "mcp.tool",
+        "resilient"
+      ],
+      "mcp_tool": true
+    },
+    {
+      "id": "fn:mycelium.server:forget",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "forget",
+      "qualname": "forget",
+      "path": "mycelium/server.py",
+      "line_start": 1614,
+      "line_end": 1639,
+      "doc": "Delete a memory and all its connections.",
+      "decorators": [
+        "mcp.tool",
+        "resilient"
+      ],
+      "mcp_tool": true
+    },
+    {
+      "id": "fn:mycelium.server:pin",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "pin",
+      "qualname": "pin",
+      "path": "mycelium/server.py",
+      "line_start": 1644,
+      "line_end": 1659,
+      "doc": "Pin or unpin a memory. Pinned memories' connections never decay below the",
+      "decorators": [
+        "mcp.tool",
+        "resilient"
+      ],
+      "mcp_tool": true
+    },
+    {
+      "id": "fn:mycelium.server:maintain",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "maintain",
+      "qualname": "maintain",
+      "path": "mycelium/server.py",
+      "line_start": 1664,
+      "line_end": 1689,
+      "doc": "Periodic memory consolidation \u2014 snapshot, plan, cold-mark, orphan rescue.",
+      "decorators": [
+        "mcp.tool",
+        "resilient"
+      ],
+      "mcp_tool": true
+    },
+    {
+      "id": "fn:mycelium.server:connections",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "connections",
+      "qualname": "connections",
+      "path": "mycelium/server.py",
+      "line_start": 1694,
+      "line_end": 1711,
+      "doc": "Show all connections for a specific memory \u2014 the local network topology.",
+      "decorators": [
+        "mcp.tool",
+        "resilient"
+      ],
+      "mcp_tool": true
+    },
+    {
+      "id": "fn:mycelium.server:serve",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "serve",
+      "qualname": "serve",
+      "path": "mycelium/server.py",
+      "line_start": 1790,
+      "line_end": 1813,
+      "doc": "Start the MCP server. Args override config.",
+      "decorators": [],
+      "mcp_tool": false
+    }
+  ],
+  "import_edges": [
+    {
+      "from": "mod:mycelium.cli",
+      "to": "mod:mycelium.config"
+    },
+    {
+      "from": "mod:mycelium.cli",
+      "to": "mod:mycelium.server"
+    },
+    {
+      "from": "mod:mycelium.cli",
+      "to": "mod:mycelium.maintain"
+    },
+    {
+      "from": "mod:mycelium.cli",
+      "to": "mod:mycelium.foundry.ingest"
+    },
+    {
+      "from": "mod:mycelium.cli",
+      "to": "mod:mycelium.dashboard"
+    },
+    {
+      "from": "mod:mycelium.cli",
+      "to": "mod:mycelium.evaluate"
+    },
+    {
+      "from": "mod:mycelium.evaluate",
+      "to": "mod:mycelium.config"
+    },
+    {
+      "from": "mod:mycelium.evaluate",
+      "to": "mod:mycelium.server"
+    },
+    {
+      "from": "mod:mycelium.foundry.ingest",
+      "to": "mod:mycelium.foundry.schema"
+    },
+    {
+      "from": "mod:mycelium.server",
+      "to": "mod:mycelium.config"
+    },
+    {
+      "from": "mod:mycelium.server",
+      "to": "mod:mycelium.embeddings"
+    },
+    {
+      "from": "mod:mycelium.server",
+      "to": "mod:mycelium.maintain"
+    },
+    {
+      "from": "mod:mycelium.server",
+      "to": "mod:mycelium.foundry"
+    },
+    {
+      "from": "mod:mycelium.server",
+      "to": "mod:mycelium.foundry.ingest"
+    },
+    {
+      "from": "mod:mycelium.server",
+      "to": "mod:mycelium.foundry.schema"
+    },
+    {
+      "from": "mod:mycelium.server",
+      "to": "mod:mycelium.foundry.publisher"
+    }
+  ],
+  "call_edges": [
+    {
+      "from": "fn:mycelium.cli:_cmd_maintain",
+      "to": "fn:mycelium.config:load"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_maintain",
+      "to": "fn:mycelium.maintain:run_maintenance"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_foundry_ingest",
+      "to": "fn:mycelium.config:load"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_foundry_ingest",
+      "to": "fn:mycelium.foundry.ingest:drain_all"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_foundry_query",
+      "to": "fn:mycelium.config:load"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_foundry_query",
+      "to": "fn:mycelium.foundry.ingest:query"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_config",
+      "to": "fn:mycelium.config:load"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_eval",
+      "to": "fn:mycelium.evaluate:run_eval"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_backfill_vectors",
+      "to": "fn:mycelium.server:set_config"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_serve",
+      "to": "fn:mycelium.server:set_config"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_init",
+      "to": "fn:mycelium.server:resolve"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_dash",
+      "to": "fn:mycelium.config:load"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_backfill_vectors",
+      "to": "fn:mycelium.config:load"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_backfill_vectors",
+      "to": "fn:mycelium.server:backfill_vectors"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_serve",
+      "to": "fn:mycelium.config:load"
+    },
+    {
+      "from": "fn:mycelium.cli:_cmd_config",
+      "to": "fn:mycelium.config:Config.to_dict"
+    },
+    {
+      "from": "fn:mycelium.config:load",
+      "to": "fn:mycelium.config:_config_search_paths"
+    },
+    {
+      "from": "fn:mycelium.config:load",
+      "to": "fn:mycelium.config:_apply_env_overrides"
+    },
+    {
+      "from": "fn:mycelium.config:load",
+      "to": "fn:mycelium.config:_expand_paths"
+    },
+    {
+      "from": "fn:mycelium.config:load",
+      "to": "fn:mycelium.config:_deep_merge"
+    },
+    {
+      "from": "fn:mycelium.config:_apply_env_overrides",
+      "to": "fn:mycelium.config:_coerce"
+    },
+    {
+      "from": "fn:mycelium.dashboard:serve",
+      "to": "fn:mycelium.dashboard:_make_handler"
+    },
+    {
+      "from": "fn:mycelium.dashboard:_make_handler",
+      "to": "fn:mycelium.server:resolve"
+    },
+    {
+      "from": "fn:mycelium.dashboard:_make_handler",
+      "to": "fn:mycelium.dashboard:_graph_ego"
+    },
+    {
+      "from": "fn:mycelium.dashboard:_make_handler",
+      "to": "fn:mycelium.dashboard:_memory_detail"
+    },
+    {
+      "from": "fn:mycelium.dashboard:_make_handler",
+      "to": "fn:mycelium.dashboard:_stats"
+    },
+    {
+      "from": "fn:mycelium.dashboard:_make_handler",
+      "to": "fn:mycelium.dashboard:_projects"
+    },
+    {
+      "from": "fn:mycelium.dashboard:_make_handler",
+      "to": "fn:mycelium.dashboard:_graph_projects"
+    },
+    {
+      "from": "fn:mycelium.dashboard:_make_handler",
+      "to": "fn:mycelium.dashboard:_graph_full"
+    },
+    {
+      "from": "fn:mycelium.dashboard:_make_handler",
+      "to": "fn:mycelium.dashboard:_graph_project"
+    },
+    {
+      "from": "fn:mycelium.dashboard:_make_handler",
+      "to": "fn:mycelium.dashboard:_search"
+    },
+    {
+      "from": "fn:mycelium.dashboard:_make_handler",
+      "to": "fn:mycelium.dashboard:_recent"
+    },
+    {
+      "from": "fn:mycelium.embeddings:embed_document",
+      "to": "fn:mycelium.embeddings:_prefixes"
+    },
+    {
+      "from": "fn:mycelium.embeddings:embed_document",
+      "to": "fn:mycelium.embeddings:_chunks"
+    },
+    {
+      "from": "fn:mycelium.embeddings:embed_query",
+      "to": "fn:mycelium.embeddings:_prefixes"
+    },
+    {
+      "from": "fn:mycelium.embeddings:embed_query",
+      "to": "fn:mycelium.embeddings:_normalize"
+    },
+    {
+      "from": "fn:mycelium.embeddings:embed_document",
+      "to": "fn:mycelium.embeddings:_normalize"
+    },
+    {
+      "from": "fn:mycelium.embeddings:healthy",
+      "to": "fn:mycelium.embeddings:_post"
+    },
+    {
+      "from": "fn:mycelium.embeddings:embed_document",
+      "to": "fn:mycelium.embeddings:_post"
+    },
+    {
+      "from": "fn:mycelium.embeddings:embed_document",
+      "to": "fn:mycelium.embeddings:_mean"
+    },
+    {
+      "from": "fn:mycelium.embeddings:embed_query",
+      "to": "fn:mycelium.embeddings:_post"
+    },
+    {
+      "from": "fn:mycelium.embeddings:cosine_sims",
+      "to": "fn:mycelium.embeddings:from_blob"
+    },
+    {
+      "from": "fn:mycelium.evaluate:run_eval",
+      "to": "fn:mycelium.config:load"
+    },
+    {
+      "from": "fn:mycelium.evaluate:run_eval",
+      "to": "fn:mycelium.server:set_config"
+    },
+    {
+      "from": "fn:mycelium.evaluate:run_eval",
+      "to": "fn:mycelium.evaluate:_score"
+    },
+    {
+      "from": "fn:mycelium.evaluate:run_eval",
+      "to": "fn:mycelium.config:Config.to_dict"
+    },
+    {
+      "from": "fn:mycelium.evaluate:run_eval",
+      "to": "fn:mycelium.server:save"
+    },
+    {
+      "from": "fn:mycelium.evaluate:run_eval",
+      "to": "fn:mycelium.evaluate:_ranked_ids"
+    },
+    {
+      "from": "fn:mycelium.evaluate:run_eval",
+      "to": "fn:mycelium.server:recall"
+    },
+    {
+      "from": "fn:mycelium.foundry.ingest:drain_all",
+      "to": "fn:mycelium.foundry.schema:init_schema"
+    },
+    {
+      "from": "fn:mycelium.foundry.ingest:query",
+      "to": "fn:mycelium.foundry.schema:init_schema"
+    },
+    {
+      "from": "fn:mycelium.foundry.ingest:drain_file",
+      "to": "fn:mycelium.foundry.ingest:_to_row"
+    },
+    {
+      "from": "fn:mycelium.foundry.ingest:drain_all",
+      "to": "fn:mycelium.foundry.ingest:drain_file"
+    },
+    {
+      "from": "fn:mycelium.foundry.publisher:_log_path",
+      "to": "fn:mycelium.foundry.publisher:_resolve_log_dir"
+    },
+    {
+      "from": "fn:mycelium.foundry.publisher:publish",
+      "to": "fn:mycelium.foundry.publisher:_log_path"
+    },
+    {
+      "from": "fn:mycelium.maintain:run_maintenance",
+      "to": "fn:mycelium.maintain:_baseline"
+    },
+    {
+      "from": "fn:mycelium.maintain:run_maintenance",
+      "to": "fn:mycelium.maintain:_plan"
+    },
+    {
+      "from": "fn:mycelium.maintain:_plan",
+      "to": "fn:mycelium.maintain:_is_protected"
+    },
+    {
+      "from": "fn:mycelium.maintain:run_maintenance",
+      "to": "fn:mycelium.maintain:_execute"
+    },
+    {
+      "from": "fn:mycelium.server:set_config",
+      "to": "fn:mycelium.foundry.publisher:set_log_dir"
+    },
+    {
+      "from": "fn:mycelium.server:backfill_vectors",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:_touch_memory",
+      "to": "fn:mycelium.server:_now"
+    },
+    {
+      "from": "fn:mycelium.server:_strengthen_connection",
+      "to": "fn:mycelium.server:_now"
+    },
+    {
+      "from": "fn:mycelium.server:_check_duplicates",
+      "to": "fn:mycelium.server:_fts_search"
+    },
+    {
+      "from": "fn:mycelium.server:save",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:save",
+      "to": "fn:mycelium.server:_now"
+    },
+    {
+      "from": "fn:mycelium.server:resolve",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:resolve",
+      "to": "fn:mycelium.server:_now"
+    },
+    {
+      "from": "fn:mycelium.server:recall",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:recall",
+      "to": "fn:mycelium.server:_apply_decay"
+    },
+    {
+      "from": "fn:mycelium.server:recall",
+      "to": "fn:mycelium.server:_fts_search"
+    },
+    {
+      "from": "fn:mycelium.server:context",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:context",
+      "to": "fn:mycelium.server:_apply_decay"
+    },
+    {
+      "from": "fn:mycelium.server:_recent_summary_line",
+      "to": "fn:mycelium.server:_humanize_age"
+    },
+    {
+      "from": "fn:mycelium.server:recent",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:recent",
+      "to": "fn:mycelium.server:_recent_rows"
+    },
+    {
+      "from": "fn:mycelium.server:wake_route",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:review",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:review",
+      "to": "fn:mycelium.server:_apply_decay"
+    },
+    {
+      "from": "fn:mycelium.server:consolidate",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:discover",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:forget",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:forget",
+      "to": "fn:mycelium.server:_protection_reason"
+    },
+    {
+      "from": "fn:mycelium.server:pin",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:maintain",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:maintain",
+      "to": "fn:mycelium.maintain:run_maintenance"
+    },
+    {
+      "from": "fn:mycelium.server:connections",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:connections",
+      "to": "fn:mycelium.server:_get_neighbors"
+    },
+    {
+      "from": "fn:mycelium.server:serve",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:serve",
+      "to": "fn:mycelium.foundry.publisher:set_log_dir"
+    },
+    {
+      "from": "fn:mycelium.server:_cfg",
+      "to": "fn:mycelium.config:load"
+    },
+    {
+      "from": "fn:mycelium.server:get_db",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:_semantic_sims",
+      "to": "fn:mycelium.embeddings:cosine_sims"
+    },
+    {
+      "from": "fn:mycelium.server:_embed_memory",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:_embed_memory",
+      "to": "fn:mycelium.embeddings:embed_document"
+    },
+    {
+      "from": "fn:mycelium.server:backfill_vectors",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:backfill_vectors",
+      "to": "fn:mycelium.server:_embed_memory"
+    },
+    {
+      "from": "fn:mycelium.server:_apply_decay",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:_apply_decay",
+      "to": "fn:mycelium.server:_decay_strength"
+    },
+    {
+      "from": "fn:mycelium.server:_get_neighbors",
+      "to": "fn:mycelium.server:_decay_strength"
+    },
+    {
+      "from": "fn:mycelium.server:save",
+      "to": "fn:mycelium.server:_check_duplicates"
+    },
+    {
+      "from": "fn:mycelium.server:save",
+      "to": "fn:mycelium.server:_fts_search"
+    },
+    {
+      "from": "fn:mycelium.server:save",
+      "to": "fn:mycelium.server:_embed_memory"
+    },
+    {
+      "from": "fn:mycelium.server:recall",
+      "to": "fn:mycelium.server:_touch_memory"
+    },
+    {
+      "from": "fn:mycelium.server:recall",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:recall",
+      "to": "fn:mycelium.server:_get_neighbors"
+    },
+    {
+      "from": "fn:mycelium.server:recall",
+      "to": "fn:mycelium.server:_track_session_access"
+    },
+    {
+      "from": "fn:mycelium.server:context",
+      "to": "fn:mycelium.server:_touch_memory"
+    },
+    {
+      "from": "fn:mycelium.server:_recent_rows",
+      "to": "fn:mycelium.server:_column_exists"
+    },
+    {
+      "from": "fn:mycelium.server:recent",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:wake_route",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:wake_route",
+      "to": "fn:mycelium.server:_recent_rows"
+    },
+    {
+      "from": "fn:mycelium.server:_embed_memory",
+      "to": "fn:mycelium.server:_log_embed_failure"
+    },
+    {
+      "from": "fn:mycelium.server:_get_neighbors",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:_track_session_access",
+      "to": "fn:mycelium.server:_strengthen_connection"
+    },
+    {
+      "from": "fn:mycelium.server:save",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:save",
+      "to": "fn:mycelium.server:_strengthen_connection"
+    },
+    {
+      "from": "fn:mycelium.server:recall",
+      "to": "fn:mycelium.embeddings:embed_query"
+    },
+    {
+      "from": "fn:mycelium.server:recall",
+      "to": "fn:mycelium.server:_semantic_sims"
+    },
+    {
+      "from": "fn:mycelium.server:context",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:wake_route",
+      "to": "fn:mycelium.server:_humanize_age"
+    },
+    {
+      "from": "fn:mycelium.server:wake_route",
+      "to": "fn:mycelium.server:_now"
+    },
+    {
+      "from": "fn:mycelium.server:review",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:discover",
+      "to": "fn:mycelium.server:_fts_search"
+    },
+    {
+      "from": "fn:mycelium.server:discover",
+      "to": "fn:mycelium.server:_strengthen_connection"
+    },
+    {
+      "from": "fn:mycelium.server:serve",
+      "to": "fn:mycelium.server:get_db"
+    },
+    {
+      "from": "fn:mycelium.server:get_db",
+      "to": "fn:mycelium.server:_init_schema"
+    },
+    {
+      "from": "fn:mycelium.server:_semantic_sims",
+      "to": "fn:mycelium.server:_log_stale_vectors"
+    },
+    {
+      "from": "fn:mycelium.server:_embed_memory",
+      "to": "fn:mycelium.embeddings:to_blob"
+    },
+    {
+      "from": "fn:mycelium.server:_embed_memory",
+      "to": "fn:mycelium.server:_now"
+    },
+    {
+      "from": "fn:mycelium.server:recall",
+      "to": "fn:mycelium.server:_now"
+    },
+    {
+      "from": "fn:mycelium.server:_semantic_sims",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:_fts_search",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:recall",
+      "to": "fn:mycelium.server:_format_memory"
+    },
+    {
+      "from": "fn:mycelium.server:context",
+      "to": "fn:mycelium.server:_format_memory"
+    },
+    {
+      "from": "fn:mycelium.server:consolidate",
+      "to": "fn:mycelium.server:_protection_reason"
+    },
+    {
+      "from": "fn:mycelium.server:discover",
+      "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:_fts_search",
+      "to": "fn:mycelium.server:_sanitize_fts_query"
+    },
+    {
+      "from": "fn:mycelium.server:save",
+      "to": "fn:mycelium.server:_format_memory"
+    },
+    {
+      "from": "fn:mycelium.server:recent",
+      "to": "fn:mycelium.server:_recent_summary_line"
+    },
+    {
+      "from": "fn:mycelium.server:connections",
+      "to": "fn:mycelium.server:_format_memory"
+    },
+    {
+      "from": "fn:mycelium.server:_decay_strength",
+      "to": "fn:mycelium.server:_cfg"
+    }
+  ],
+  "mcp_tools": [
+    "fn:mycelium.server:save",
+    "fn:mycelium.server:resolve",
+    "fn:mycelium.server:recall",
+    "fn:mycelium.server:context",
+    "fn:mycelium.server:recent",
+    "fn:mycelium.server:review",
+    "fn:mycelium.server:consolidate",
+    "fn:mycelium.server:discover",
+    "fn:mycelium.server:forget",
+    "fn:mycelium.server:pin",
+    "fn:mycelium.server:maintain",
+    "fn:mycelium.server:connections"
+  ],
+  "docs": [
+    {
+      "path": "docs/README.md",
+      "loc": 18,
+      "headings": [
+        {
+          "level": 1,
+          "text": "mycelium docs",
+          "line": 1
+        }
+      ]
+    },
+    {
+      "path": "docs/benchmarks.md",
+      "loc": 100,
+      "headings": [
+        {
+          "level": 1,
+          "text": "Does semantic recall help? Benchmark it.",
+          "line": 1
+        },
+        {
+          "level": 2,
+          "text": "Should you enable it?",
+          "line": 18
+        },
+        {
+          "level": 2,
+          "text": "What the numbers look like",
+          "line": 37
+        },
+        {
+          "level": 3,
+          "text": "Bundled sample \u2014 20 paraphrase queries over 22 cross-domain memories",
+          "line": 39
+        },
+        {
+          "level": 3,
+          "text": "A larger real corpus",
+          "line": 69
+        },
+        {
+          "level": 2,
+          "text": "Honest caveats",
+          "line": 77
+        },
+        {
+          "level": 2,
+          "text": "Make it your own",
+          "line": 87
+        }
+      ]
+    },
+    {
+      "path": "docs/claude-md-primer.md",
+      "loc": 120,
+      "headings": [
+        {
+          "level": 1,
+          "text": "CLAUDE.md primer for mycelium",
+          "line": 1
+        },
+        {
+          "level": 2,
+          "text": "Mycelium \u2014 persistent memory",
+          "line": 12
+        },
+        {
+          "level": 3,
+          "text": "Startup ritual",
+          "line": 18
+        },
+        {
+          "level": 3,
+          "text": "Saving memories",
+          "line": 26
+        },
+        {
+          "level": 3,
+          "text": "Recalling",
+          "line": 51
+        },
+        {
+          "level": 3,
+          "text": "Maintenance",
+          "line": 61
+        },
+        {
+          "level": 3,
+          "text": "Session checkpoints (with the /checkpoint skill)",
+          "line": 71
+        },
+        {
+          "level": 2,
+          "text": "Foundry \u2014 behavioral memory (decisions log)",
+          "line": 84
+        },
+        {
+          "level": 2,
+          "text": "Short-Term Memory (STM) \u2014 optional",
+          "line": 107
+        }
+      ]
+    },
+    {
+      "path": "docs/concepts.md",
+      "loc": 301,
+      "headings": [
+        {
+          "level": 1,
+          "text": "Concepts \u2014 what mycelium actually is and how it works",
+          "line": 1
+        },
+        {
+          "level": 2,
+          "text": "The one-line version",
+          "line": 8
+        },
+        {
+          "level": 2,
+          "text": "The two memory cards",
+          "line": 14
+        },
+        {
+          "level": 2,
+          "text": "Semantic card \u2014 the core concepts",
+          "line": 28
+        },
+        {
+          "level": 3,
+          "text": "Memories",
+          "line": 30
+        },
+        {
+          "level": 3,
+          "text": "Connections",
+          "line": 38
+        },
+        {
+          "level": 3,
+          "text": "Decay",
+          "line": 48
+        },
+        {
+          "level": 3,
+          "text": "Tiers \u2014 `hot` vs `cold`",
+          "line": 65
+        },
+        {
+          "level": 3,
+          "text": "Pinning \u2014 protecting facts from decay",
+          "line": 85
+        },
+        {
+          "level": 3,
+          "text": "Confidence",
+          "line": 101
+        },
+        {
+          "level": 3,
+          "text": "Project field",
+          "line": 113
+        },
+        {
+          "level": 3,
+          "text": "Resolvers \u2014 disambiguation",
+          "line": 122
+        },
+        {
+          "level": 2,
+          "text": "Conventions baked into maintenance",
+          "line": 136
+        },
+        {
+          "level": 3,
+          "text": "Session checkpoints",
+          "line": 138
+        },
+        {
+          "level": 3,
+          "text": "Supersedes markers",
+          "line": 148
+        },
+        {
+          "level": 2,
+          "text": "Lifecycle \u2014 what happens to a memory over time",
+          "line": 162
+        },
+        {
+          "level": 2,
+          "text": "Foundry \u2014 behavioral memory",
+          "line": 188
+        },
+        {
+          "level": 2,
+          "text": "All the MCP tools \u2014 when each is for",
+          "line": 217
+        },
+        {
+          "level": 2,
+          "text": "Slash skills (companion conventions)",
+          "line": 238
+        },
+        {
+          "level": 2,
+          "text": "STM \u2014 short-term memory hook (separate concept)",
+          "line": 255
+        },
+        {
+          "level": 2,
+          "text": "Mental model \u2014 the gardener, not the librarian",
+          "line": 279
+        },
+        {
+          "level": 2,
+          "text": "Further reading",
+          "line": 296
+        }
+      ]
+    },
+    {
+      "path": "docs/configuration.md",
+      "loc": 156,
+      "headings": [
+        {
+          "level": 1,
+          "text": "Configuration",
+          "line": 1
+        },
+        {
+          "level": 2,
+          "text": "`[server]`",
+          "line": 25
+        },
+        {
+          "level": 2,
+          "text": "`[storage]`",
+          "line": 38
+        },
+        {
+          "level": 2,
+          "text": "`[memory]`",
+          "line": 48
+        },
+        {
+          "level": 2,
+          "text": "`[foundry]`",
+          "line": 71
+        },
+        {
+          "level": 2,
+          "text": "`[foundry.retention]`",
+          "line": 82
+        },
+        {
+          "level": 2,
+          "text": "`[semantic]`",
+          "line": 94
+        },
+        {
+          "level": 2,
+          "text": "Tuning by symptom",
+          "line": 136
+        },
+        {
+          "level": 2,
+          "text": "Inspecting the live config",
+          "line": 149
+        }
+      ]
+    },
+    {
+      "path": "docs/design/module-decomposition.md",
+      "loc": 207,
+      "headings": [
+        {
+          "level": 1,
+          "text": "Why memory is its own module \u2014 Parnas 1971 applied to an agent",
+          "line": 1
+        },
+        {
+          "level": 2,
+          "text": "The paper in plain language",
+          "line": 17
+        },
+        {
+          "level": 2,
+          "text": "Mycelium is a Parnas module",
+          "line": 53
+        },
+        {
+          "level": 3,
+          "text": "Two secrets, not one \u2014 semantic vs. behavioral memory",
+          "line": 88
+        },
+        {
+          "level": 2,
+          "text": "\"Memory is guidance, system state is truth\" is a clean boundary",
+          "line": 106
+        },
+        {
+          "level": 2,
+          "text": "The pruning test \u2014 and mycelium passes it",
+          "line": 129
+        },
+        {
+          "level": 2,
+          "text": "The part Parnas didn't have: information hiding in the *attention* domain",
+          "line": 149
+        },
+        {
+          "level": 2,
+          "text": "How to apply this to your own integration",
+          "line": 179
+        },
+        {
+          "level": 2,
+          "text": "Further reading",
+          "line": 203
+        }
+      ]
+    },
+    {
+      "path": "docs/everyday-use.md",
+      "loc": 301,
+      "headings": [
+        {
+          "level": 1,
+          "text": "Everyday use: getting value out of mycelium, from personal to advanced",
+          "line": 1
+        },
+        {
+          "level": 2,
+          "text": "The one idea that changes everything",
+          "line": 15
+        },
+        {
+          "level": 2,
+          "text": "Keep your worlds separate with \"projects\"",
+          "line": 33
+        },
+        {
+          "level": 2,
+          "text": "What's worth telling it to remember",
+          "line": 50
+        },
+        {
+          "level": 2,
+          "text": "What NOT to save",
+          "line": 78
+        },
+        {
+          "level": 2,
+          "text": "What a useful session actually looks like",
+          "line": 91
+        },
+        {
+          "level": 2,
+          "text": "A gallery: all kinds of people, all kinds of uses",
+          "line": 116
+        },
+        {
+          "level": 2,
+          "text": "Climbing the ladder: technical and advanced use",
+          "line": 202
+        },
+        {
+          "level": 3,
+          "text": "Technical / developer use",
+          "line": 207
+        },
+        {
+          "level": 3,
+          "text": "Advanced / power use",
+          "line": 228
+        },
+        {
+          "level": 2,
+          "text": "The two habits that make it pay off",
+          "line": 263
+        },
+        {
+          "level": 2,
+          "text": "A gentle weekly rhythm (optional)",
+          "line": 280
+        },
+        {
+          "level": 2,
+          "text": "If it ever feels like it forgot something",
+          "line": 292
+        }
+      ]
+    },
+    {
+      "path": "docs/local-llm-maintenance.md",
+      "loc": 98,
+      "headings": [
+        {
+          "level": 1,
+          "text": "Local-LLM-assisted maintenance",
+          "line": 1
+        },
+        {
+          "level": 2,
+          "text": "What you need",
+          "line": 16
+        },
+        {
+          "level": 1,
+          "text": "export LOCAL_LLM_NOTHINK=1           # only for reasoning models \u2014 see gotcha below",
+          "line": 33
+        },
+        {
+          "level": 2,
+          "text": "The consolidation workflow",
+          "line": 36
+        },
+        {
+          "level": 1,
+          "text": "1. Find dense clusters worth folding",
+          "line": 39
+        },
+        {
+          "level": 1,
+          "text": "2. Dump the candidates for one project (id + text, one block each)",
+          "line": 42
+        },
+        {
+          "level": 1,
+          "text": "3. Let the local model DRAFT summaries + a conservative archive/keep split",
+          "line": 45
+        },
+        {
+          "level": 1,
+          "text": "4. YOU verify every proposed archive against reality, then act:",
+          "line": 48
+        },
+        {
+          "level": 1,
+          "text": "- save the theme summaries you like as new cold memories",
+          "line": 49
+        },
+        {
+          "level": 1,
+          "text": "- forget() only the originals you confirmed are captured",
+          "line": 50
+        },
+        {
+          "level": 2,
+          "text": "The hardened prompt",
+          "line": 57
+        },
+        {
+          "level": 2,
+          "text": "Why local models over-archive",
+          "line": 69
+        },
+        {
+          "level": 2,
+          "text": "Reasoning-model gotcha",
+          "line": 86
+        }
+      ]
+    },
+    {
+      "path": "docs/recency-precision.md",
+      "loc": 138,
+      "headings": [
+        {
+          "level": 1,
+          "text": "Recency surfacing + prior-override precision",
+          "line": 1
+        },
+        {
+          "level": 2,
+          "text": "The two problems",
+          "line": 8
+        },
+        {
+          "level": 2,
+          "text": "1. `recent()` \u2014 the episodic view",
+          "line": 25
+        },
+        {
+          "level": 2,
+          "text": "2. `contradicts_prior` \u2014 prior-override salience",
+          "line": 52
+        },
+        {
+          "level": 1,
+          "text": "base knowledge says this edition is EOL \u2014 but you actually run it",
+          "line": 58
+        },
+        {
+          "level": 2,
+          "text": "Tunables",
+          "line": 73
+        },
+        {
+          "level": 2,
+          "text": "Benchmark: hubs are not recency",
+          "line": 86
+        },
+        {
+          "level": 2,
+          "text": "Biomimetic framing \u2014 *inspired-by, not literal*",
+          "line": 118
+        },
+        {
+          "level": 2,
+          "text": "Wiring it up (harness side)",
+          "line": 131
+        }
+      ]
+    },
+    {
+      "path": "docs/research/README.md",
+      "loc": 15,
+      "headings": [
+        {
+          "level": 1,
+          "text": "docs/research/",
+          "line": 1
+        },
+        {
+          "level": 2,
+          "text": "Contents",
+          "line": 11
+        }
+      ]
+    },
+    {
+      "path": "docs/research/mycelium-memory-governance.md",
+      "loc": 308,
+      "headings": [
+        {
+          "level": 1,
+          "text": "Mycelium: Memory Governance for Long-Running Agent Systems",
+          "line": 1
+        },
+        {
+          "level": 2,
+          "text": "A Context-Economy Architecture for Verifier-Mediated Agent Memory",
+          "line": 2
+        },
+        {
+          "level": 2,
+          "text": "Abstract",
+          "line": 6
+        },
+        {
+          "level": 2,
+          "text": "1. Introduction",
+          "line": 14
+        },
+        {
+          "level": 2,
+          "text": "2. Related Work and Positioning",
+          "line": 24
+        },
+        {
+          "level": 2,
+          "text": "3. Retrieval Is Not Memory",
+          "line": 32
+        },
+        {
+          "level": 2,
+          "text": "4. Memory as Governance",
+          "line": 46
+        },
+        {
+          "level": 2,
+          "text": "5. Governance Operations",
+          "line": 69
+        },
+        {
+          "level": 2,
+          "text": "6. Pattern Extraction and Trust",
+          "line": 88
+        },
+        {
+          "level": 2,
+          "text": "7. The Context Economy",
+          "line": 106
+        },
+        {
+          "level": 2,
+          "text": "8. System Model",
+          "line": 133
+        },
+        {
+          "level": 3,
+          "text": "8.1 Curated Memory",
+          "line": 159
+        },
+        {
+          "level": 3,
+          "text": "8.2 Behavioral Trace Memory",
+          "line": 163
+        },
+        {
+          "level": 3,
+          "text": "8.3 Session Lineage",
+          "line": 167
+        },
+        {
+          "level": 3,
+          "text": "8.4 Coordination",
+          "line": 171
+        },
+        {
+          "level": 3,
+          "text": "8.5 Verifier-Mediated Action",
+          "line": 175
+        },
+        {
+          "level": 2,
+          "text": "9. Separation of Semantic and Behavioral Memory",
+          "line": 179
+        },
+        {
+          "level": 2,
+          "text": "10. Promotion, Graduation, and Tooling",
+          "line": 191
+        },
+        {
+          "level": 2,
+          "text": "11. Consolidation Risks and Conflict Arbitration",
+          "line": 211
+        },
+        {
+          "level": 2,
+          "text": "12. Verifier-Driven Learning",
+          "line": 219
+        },
+        {
+          "level": 2,
+          "text": "13. Folding and Session Lineage",
+          "line": 235
+        },
+        {
+          "level": 2,
+          "text": "14. Local Inference as a Memory Primitive",
+          "line": 243
+        },
+        {
+          "level": 2,
+          "text": "15. Observed Failure Patterns",
+          "line": 249
+        },
+        {
+          "level": 2,
+          "text": "16. Evaluation Agenda",
+          "line": 261
+        },
+        {
+          "level": 2,
+          "text": "17. Relationship to Vector Databases",
+          "line": 277
+        },
+        {
+          "level": 2,
+          "text": "18. Anti-Goals and Limitations",
+          "line": 288
+        },
+        {
+          "level": 2,
+          "text": "19. Conclusion",
+          "line": 294
+        },
+        {
+          "level": 2,
+          "text": "References",
+          "line": 300
+        }
+      ]
+    },
+    {
+      "path": "docs/seeding.md",
+      "loc": 161,
+      "headings": [
+        {
+          "level": 1,
+          "text": "Seeding mycelium from your existing stuff",
+          "line": 1
+        },
+        {
+          "level": 2,
+          "text": "Recipe 1: from your existing CLAUDE.md / AGENTS.md / project notes",
+          "line": 16
+        },
+        {
+          "level": 2,
+          "text": "Recipe 2: from a project tree scan",
+          "line": 41
+        },
+        {
+          "level": 2,
+          "text": "Recipe 3: from a curated seed file you write yourself",
+          "line": 65
+        },
+        {
+          "level": 1,
+          "text": "project: acme-api",
+          "line": 72
+        },
+        {
+          "level": 1,
+          "text": "project: acme-web",
+          "line": 78
+        },
+        {
+          "level": 2,
+          "text": "Recipe 4: distill the current conversation",
+          "line": 94
+        },
+        {
+          "level": 2,
+          "text": "Recipe 5: from shell history",
+          "line": 114
+        },
+        {
+          "level": 2,
+          "text": "After seeding",
+          "line": 134
+        },
+        {
+          "level": 2,
+          "text": "Don't over-seed",
+          "line": 157
+        }
+      ]
+    }
+  ]
+}
