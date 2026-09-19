@@ -12,6 +12,11 @@ Single-process MCP server, SQLite + FTS5, zero external services. Works with
 Claude Code, Claude Desktop, Codex CLI, or any MCP-speaking client. They can
 all share the same memory store.
 
+> **Not a developer?** You don't have to be. Mycelium is just as useful for
+> everyday work with Claude: finances, scheduling, research, studying, a home
+> project. See **[docs/everyday-use.md](docs/everyday-use.md)** for the
+> plain-language guide.
+
 ## Why you might want this
 
 - **Conversations stop being disposable.** What you taught the model on Tuesday

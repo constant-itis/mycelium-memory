@@ -4,6 +4,7 @@ Start with **concepts**, then reach for the rest as you need them.
 
 | Doc | What it's for |
 |---|---|
+| [everyday-use.md](everyday-use.md) | Using mycelium across the whole range: starts with non-developer everyday work (finances, scheduling, research, home projects), then climbs through developer and advanced/power use. Start here if you're new. |
 | [concepts.md](concepts.md) | Read-once overview — what mycelium actually is and how the pieces (recall, connections, decay, consolidation) fit together. |
 | [claude-md-primer.md](claude-md-primer.md) | A snippet to paste into your own `CLAUDE.md` so Claude uses mycelium consistently (recall before asking, save what's worth keeping). |
 | [configuration.md](configuration.md) | The single TOML config file, its sections, and the `MYCELIUM_*` env overrides. Zero-config works; override only what you care about. |
@@ -12,4 +13,6 @@ Start with **concepts**, then reach for the rest as you need them.
 | [local-llm-maintenance.md](local-llm-maintenance.md) | Offload memory upkeep to a local LLM: draft consolidation summaries + an archive/keep proposal, human-verified before deletion. |
 | [research/](research/) | Long-form notes on the ideas behind mycelium — memory governance for long-running agent systems. |
 
-New here? [concepts.md](concepts.md) → install (see the [top-level README](../README.md)) → [claude-md-primer.md](claude-md-primer.md).
+New here?
+- **Using it for everyday work (non-developer):** [everyday-use.md](everyday-use.md) → install (see the [top-level README](../README.md)).
+- **Wiring it into a coding agent (developer):** [concepts.md](concepts.md) → install → [claude-md-primer.md](claude-md-primer.md).
