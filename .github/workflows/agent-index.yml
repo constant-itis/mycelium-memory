@@ -20,7 +20,8 @@ jobs:
         run: |
           python3 scripts/build_agent_graph.py
           python3 scripts/generate_agent_index.py
+          python3 scripts/build_llms_txt.py
       - name: Fail if the committed map is stale
-        run: git diff --exit-code agent-graph.json agent-index.json
+        run: git diff --exit-code agent-graph.json agent-index.json llms.txt
       - name: Verify the map resolves against the code
         run: python3 scripts/verify_agent_index.py
