@@ -128,6 +128,26 @@ def _cmd_backfill_vectors(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_save(args: argparse.Namespace) -> int:
+    from . import server
+    server.set_config(_config.load(args.config))
+    print(server.save(
+        args.content,
+        project=args.project or "",
+        pinned=args.pinned,
+        contradicts_prior=args.contradicts_prior,
+        force=args.force,
+    ))
+    return 0
+
+
+def _cmd_recall(args: argparse.Namespace) -> int:
+    from . import server
+    server.set_config(_config.load(args.config))
+    print(server.recall(args.query, project=args.project or "", limit=args.limit))
+    return 0
+
+
 def _cmd_backfill_units(args: argparse.Namespace) -> int:
     from . import server
     server.set_config(_config.load(args.config))
@@ -167,6 +187,22 @@ def main(argv: list[str] | None = None) -> int:
 
     cfg_cmd = sub.add_parser("config", help="print effective config")
     cfg_cmd.set_defaults(func=_cmd_config)
+
+    sv = sub.add_parser("save", help="save a memory from the shell")
+    sv.add_argument("content", help="the memory text")
+    sv.add_argument("--project", help="project tag")
+    sv.add_argument("--pinned", action="store_true", help="resists decay")
+    sv.add_argument("--contradicts-prior", action="store_true",
+                    help="flag a fact that conflicts with common/base knowledge")
+    sv.add_argument("--force", action="store_true",
+                    help="save even if a similar memory exists")
+    sv.set_defaults(func=_cmd_save)
+
+    rc = sub.add_parser("recall", help="search memories from the shell")
+    rc.add_argument("query", help="natural-language query")
+    rc.add_argument("--project", help="restrict to a project")
+    rc.add_argument("--limit", type=int, default=5, help="max direct results (default 5)")
+    rc.set_defaults(func=_cmd_recall)
 
     bv = sub.add_parser(
         "backfill-vectors",
