@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "mycelium": {
+      "command": "mycelium",
+      "args": ["serve"],
+      "env": {
+        "MYCELIUM_STORAGE_DB_PATH": "/absolute/path/to/demo.db",
+        "MYCELIUM_SEMANTIC_EMBED_URL": "http://localhost:11434/v1/embeddings",
+        "MYCELIUM_SEMANTIC_EMBED_MODEL": "nomic-embed-text",
+        "MYCELIUM_MEMORY_RECALL_PROPAGATE": "2",
+        "MYCELIUM_FOUNDRY_ENABLED": "false"
+      }
+    }
+  }
+}

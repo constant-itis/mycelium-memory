@@ -106,10 +106,13 @@ adds no dependencies to the package and runs anywhere mycelium does.
 
 ## What a session feels like
 
-https://github.com/user-attachments/assets/2a274f61-24e8-4eed-82a2-f3dbe75126cd
+![A real Claude Code session recalling facts from mycelium](demo/mycelium-demo.gif)
 
-Save a fact → `/checkpoint` → `/clear` → fresh session pulls it right back
-via `context()` and `recall()`. ~50 seconds.
+A real Claude Code session, connected to mycelium over MCP. The first answer
+is a fact buried mid-paragraph in a long saved maintenance log; the second is
+a stored exception that outranks the model's stale assumption; the third
+saves a new fact for every future session. Nothing mocked, ~25 seconds.
+The full recording pipeline is in [demo/](demo/) if you want to reproduce it.
 
 If you'd rather read it as a transcript:
 
