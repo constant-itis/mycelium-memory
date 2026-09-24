@@ -128,6 +128,22 @@ def _cmd_backfill_vectors(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_backfill_units(args: argparse.Namespace) -> int:
+    from . import server
+    server.set_config(_config.load(args.config))
+    try:
+        r = server.backfill_units(rebuild=args.rebuild)
+    except RuntimeError as e:
+        print(f"error: {e}", file=sys.stderr)
+        print("set [semantic] embed_url (and units = true) in your config first "
+              "(see config.example.toml).", file=sys.stderr)
+        return 1
+    print(f"indexed {r['indexed']} memories ({r['units_written']} units, "
+          f"{r['failed']} failed); {r['total_units']} units cover "
+          f"{r['parents_covered']} of {r['memories']} memories")
+    return 0
+
+
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(prog="mycelium", description="Mycelium memory MCP server")
     p.add_argument("--config", help="path to config.toml (overrides search paths)")
@@ -159,6 +175,14 @@ def main(argv: list[str] | None = None) -> int:
     bv.add_argument("--reembed", action="store_true",
                     help="re-embed even memories that already have a vector")
     bv.set_defaults(func=_cmd_backfill_vectors)
+
+    bu = sub.add_parser(
+        "backfill-units",
+        help="build the semantic-unit index for long memories (requires [semantic] embed_url)",
+    )
+    bu.add_argument("--rebuild", action="store_true",
+                    help="re-index even memories that already have units")
+    bu.set_defaults(func=_cmd_backfill_units)
 
     ev = sub.add_parser(
         "eval",

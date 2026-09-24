@@ -260,6 +260,21 @@ def _init_schema(conn: sqlite3.Connection) -> None:
             vec       BLOB    NOT NULL,
             updated   TEXT    NOT NULL
         );
+
+        -- Semantic-unit index (additive; [semantic] units). Window-level
+        -- vectors for LONG memories only, used purely as a retrieval seed:
+        -- a unit hit pulls its PARENT memory into the recall candidate pool
+        -- and lets it score by its best-matching window. Recall still returns
+        -- whole memories, so units carry no offsets or provenance burden.
+        CREATE TABLE IF NOT EXISTS memory_units (
+            unit_id   INTEGER PRIMARY KEY,
+            memory_id INTEGER NOT NULL REFERENCES memories(id) ON DELETE CASCADE,
+            dim       INTEGER NOT NULL,
+            model     TEXT    NOT NULL,
+            vec       BLOB    NOT NULL,
+            created   TEXT    NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS idx_memory_units_mem ON memory_units(memory_id);
     """)
 
     # contradicts_prior salience flag — additive migration. Marks memories whose
@@ -404,6 +419,130 @@ def backfill_vectors(reembed: bool = False) -> dict:
     ).fetchone()[0]
     conn.close()
     return {"embedded": ok, "failed": fail, "total": total, "memories": len(rows)}
+
+
+# ----- semantic-unit index (optional; [semantic] units + embed_url) -----
+def _extractive_windows(text: str, win: int, stride: int) -> list[str]:
+    """Overlapping windows of sentence-ish units, so a window keeps the
+    surrounding context needed to interpret it (not bare isolated sentences)."""
+    units = [u.strip() for u in re.split(r"(?<=[.!?])\s+|\n+", text or "") if u.strip()]
+    if not units:
+        return []
+    out = []
+    for i in range(0, max(1, len(units)), stride):
+        w = " ".join(units[i : i + win])
+        if w:
+            out.append(w)
+        if i + win >= len(units):
+            break
+    return out
+
+
+def _units_active(sem: dict) -> bool:
+    return bool(sem.get("embed_url")) and bool(sem.get("units", True))
+
+
+def _index_units(conn: sqlite3.Connection, memory_id: int, content: str) -> int:
+    """(Re)build the unit index for one memory. Best-effort like _embed_memory:
+    returns units written, never raises out of the save path via its caller.
+    Idempotent: existing rows for the memory are replaced."""
+    sem = _cfg().semantic
+    if not _units_active(sem):
+        return 0
+    conn.execute("DELETE FROM memory_units WHERE memory_id=?", (memory_id,))
+    if len(content or "") < int(sem["unit_min_chars"]):
+        return 0
+    windows = _extractive_windows(content, int(sem["unit_win"]), int(sem["unit_stride"]))
+    if len(windows) < 2:  # one window is just the whole-memory vector again
+        return 0
+    now = _now()
+    for w in windows:
+        v = _embed.embed_document(
+            w,
+            url=sem["embed_url"],
+            model=sem["embed_model"],
+            chunk_chars=int(sem["chunk_chars"]),
+            timeout=float(sem["timeout_seconds"]),
+        )
+        conn.execute(
+            "INSERT INTO memory_units (memory_id, dim, model, vec, created) "
+            "VALUES (?,?,?,?,?)",
+            (memory_id, len(v), sem["embed_model"], _embed.to_blob(v), now),
+        )
+    return len(windows)
+
+
+def _unit_parent_sims(conn: sqlite3.Connection, qvec) -> dict:
+    """{parent memory_id: best-matching unit cosine} over the unit index.
+
+    Same embedding space and scale as the whole-memory cosine, so callers may
+    take max(whole, unit) per memory. {} on any failure or empty index (the
+    unit arm just drops out of the fusion)."""
+    try:
+        model = _cfg().semantic.get("embed_model")
+        rows = conn.execute(
+            "SELECT unit_id, memory_id, vec FROM memory_units WHERE model=?", (model,)
+        ).fetchall()
+        if not rows:
+            return {}
+        unit_sims = _embed.cosine_sims(qvec, [(r["unit_id"], r["vec"]) for r in rows])
+        parent = {r["unit_id"]: r["memory_id"] for r in rows}
+        best: dict = {}
+        for uid, s in unit_sims.items():
+            mid = parent[uid]
+            if s > best.get(mid, -1.0):
+                best[mid] = s
+        return best
+    except Exception:
+        return {}
+
+
+def backfill_units(rebuild: bool = False) -> dict:
+    """Build the semantic-unit index for all long memories. Idempotent +
+    resumable: skips memories already indexed for the current model unless
+    rebuild=True. Additive: touches only memory_units."""
+    sem = _cfg().semantic
+    if not sem.get("embed_url"):
+        raise RuntimeError("[semantic] embed_url is not configured")
+    if not sem.get("units", True):
+        raise RuntimeError("[semantic] units is disabled")
+    conn = get_db()
+    rows = conn.execute("SELECT id, content FROM memories ORDER BY id").fetchall()
+    done: set[int] = set()
+    if not rebuild:
+        done = {
+            r[0]
+            for r in conn.execute(
+                "SELECT DISTINCT memory_id FROM memory_units WHERE model=?",
+                (sem["embed_model"],),
+            )
+        }
+    ok = fail = units = 0
+    for r in rows:
+        if r["id"] in done or len(r["content"] or "") < int(sem["unit_min_chars"]):
+            continue
+        try:
+            n = _index_units(conn, r["id"], r["content"])
+            ok += 1
+            units += n
+        except Exception as e:
+            fail += 1
+            _log_embed_failure(r["id"], e)
+        if (ok + fail) % 50 == 0:
+            conn.commit()
+    conn.commit()
+    total = conn.execute(
+        "SELECT COUNT(*) FROM memory_units WHERE model=?", (sem["embed_model"],)
+    ).fetchone()[0]
+    covered = conn.execute(
+        "SELECT COUNT(DISTINCT memory_id) FROM memory_units WHERE model=?",
+        (sem["embed_model"],),
+    ).fetchone()[0]
+    conn.close()
+    return {
+        "indexed": ok, "failed": fail, "units_written": units,
+        "total_units": total, "parents_covered": covered, "memories": len(rows),
+    }
 
 
 def _decay_strength(strength: float, last_activated: str) -> float:
@@ -654,6 +793,60 @@ def _fts_search(conn: sqlite3.Connection, query: str, limit: int = 10) -> list[d
     return results[:limit]
 
 
+_RECALL_COLS = (
+    "id, content, project, tier, access_count, created, last_accessed, contradicts_prior"
+)
+
+
+def _bm25_ids(conn: sqlite3.Connection, query: str, k: int) -> list[int]:
+    """Deep BM25 rank list: raw FTS5 order, no re-rank, no truncation to limit."""
+    try:
+        rows = conn.execute(
+            "SELECT m.id FROM memories_fts f JOIN memories m ON m.id = f.rowid "
+            "WHERE memories_fts MATCH ? ORDER BY f.rank LIMIT ?",
+            (_sanitize_fts_query(query), k),
+        ).fetchall()
+        return [r["id"] for r in rows]
+    except Exception:
+        return []
+
+
+def _rrf_candidates(
+    conn: sqlite3.Connection, query: str, sims: dict, unit_sims: dict | None = None
+) -> list[dict]:
+    """Reciprocal Rank Fusion of the BM25, whole-memory cosine and semantic-unit
+    rank lists into candidate memory rows.
+
+    score(m) = sum over arms of 1/(rrf_k + rank_m). Fusion picks the POOL; the
+    composite scorer in recall() decides the final ORDER. Rank-based fusion
+    never mixes the incomparable BM25/cosine scales, and each arm degrades
+    independently: embedder down leaves deep BM25, an FTS error leaves cosine,
+    and an empty result means the caller should use the legacy path."""
+    mem = _cfg().memory
+    depth, k_damp, pool = int(mem["rrf_depth"]), int(mem["rrf_k"]), int(mem["rrf_pool"])
+    arms = []
+    bm = _bm25_ids(conn, query, depth)
+    if bm:
+        arms.append(bm)
+    if sims:
+        arms.append([mid for mid, _ in sorted(sims.items(), key=lambda kv: -kv[1])[:depth]])
+    if unit_sims:
+        arms.append(sorted(unit_sims, key=lambda m: -unit_sims[m])[:depth])
+    fused: dict = {}
+    for arm in arms:
+        for i, mid in enumerate(arm):
+            fused[mid] = fused.get(mid, 0.0) + 1.0 / (k_damp + i + 1)
+    top = sorted(fused, key=lambda m: -fused[m])[:pool]
+    out = []
+    for mid in top:
+        row = conn.execute(
+            f"SELECT {_RECALL_COLS} FROM memories WHERE id=?", (mid,)
+        ).fetchone()
+        if row:
+            out.append(dict(row))
+    return out
+
+
 def _format_memory(m: dict) -> str:
     parts = [f"[#{m['id']}]"]
     if m.get("project"):
@@ -836,6 +1029,13 @@ def save(
     if _cfg().semantic.get("embed_url"):
         if _embed_memory(conn, new_id, content):
             conn.commit()
+        # Unit index for long memories, same best-effort discipline: a failure
+        # just means this memory lacks unit seeds until `backfill-units` runs.
+        try:
+            if _index_units(conn, new_id, content):
+                conn.commit()
+        except Exception as e:
+            _log_embed_failure(new_id, e)
 
     lines = [f"Saved #{new_id}"]
     if project:
@@ -924,22 +1124,12 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
         resolver_note = f"\n## Disambiguation\n  {resolver['content']}\n"
         _touch_memory(conn, resolver["id"], agent=agent)
 
-    results = _fts_search(conn, query, limit=limit)
-
-    if not results and project:
-        results = conn.execute(
-            "SELECT id, content, project, tier, access_count, created, last_accessed, contradicts_prior "
-            "FROM memories WHERE project=? ORDER BY last_accessed DESC LIMIT ?",
-            (project, limit),
-        ).fetchall()
-        results = [dict(r) for r in results]
-
-    # Semantic arm (optional). Merges the top semantically-similar memories into
-    # the candidate pool so meaning-based queries reach memories that share no
-    # keywords. `sims` (id -> cosine) is reused below as a primary score term.
-    # Any failure (endpoint down, etc.) leaves sims empty -> pure lexical.
+    # Semantic similarities, computed up front: they feed the cosine and unit
+    # arms of the RRF fusion AND are reused below as a primary score term.
+    # Any failure (endpoint down, etc.) leaves them empty -> pure lexical.
     sem = _cfg().semantic
     sims: dict = {}
+    usims: dict = {}
     if sem.get("embed_url"):
         try:
             qvec = _embed.embed_query(
@@ -947,21 +1137,40 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
                 timeout=float(sem["timeout_seconds"]),
             )
             sims = _semantic_sims(conn, qvec)
+            if sem.get("units", True):
+                usims = _unit_parent_sims(conn, qvec)
         except Exception:
-            sims = {}
-    if sims:
-        have = {r["id"] for r in results}
-        for mid, _cos in sorted(sims.items(), key=lambda kv: -kv[1])[: int(sem["top_k"])]:
-            if mid in have:
-                continue
-            row = conn.execute(
-                "SELECT id, content, project, tier, access_count, created, last_accessed, contradicts_prior "
-                "FROM memories WHERE id=?",
-                (mid,),
-            ).fetchone()
-            if row:
-                results.append(dict(row))
-                have.add(mid)
+            sims, usims = {}, {}
+
+    # Candidate gathering. Hybrid RRF (default): deep BM25, deep whole-memory
+    # cosine and semantic-unit hits, rank-fused into the top rrf_pool. Legacy
+    # path (memory.hybrid_rrf = false, or the fusion came up dry): shallow
+    # re-ranked FTS (with its LIKE fallback) + semantic top_k merge.
+    results = (
+        _rrf_candidates(conn, query, sims, unit_sims=usims)
+        if _cfg().memory["hybrid_rrf"] else []
+    )
+    if not results:
+        results = _fts_search(conn, query, limit=limit)
+        if sims:
+            have = {r["id"] for r in results}
+            for mid, _cos in sorted(sims.items(), key=lambda kv: -kv[1])[: int(sem["top_k"])]:
+                if mid in have:
+                    continue
+                row = conn.execute(
+                    f"SELECT {_RECALL_COLS} FROM memories WHERE id=?", (mid,)
+                ).fetchone()
+                if row:
+                    results.append(dict(row))
+                    have.add(mid)
+
+    if not results and project:
+        results = conn.execute(
+            f"SELECT {_RECALL_COLS} "
+            "FROM memories WHERE project=? ORDER BY last_accessed DESC LIMIT ?",
+            (project, limit),
+        ).fetchall()
+        results = [dict(r) for r in results]
 
     if not results:
         conn.close()
@@ -999,7 +1208,13 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
                 pass
         # Semantic similarity as a primary ranking signal (semantic-led). 0 when
         # disabled or the memory has no vector, so lexical behavior is unchanged.
-        semantic_boost = float(sem["weight"]) * sims.get(memory["id"], 0.0) if sims else 0.0
+        # Best-granularity evidence wins: a long memory whose whole-document
+        # vector averages away a buried fact still scores by its best UNIT
+        # match. Without this, the composite re-rank re-buries exactly the
+        # memories the unit arm pulled into the pool (measured: target at
+        # rank 1 in two retrieval arms, still re-ranked to pool-rank 19).
+        cos = max(sims.get(memory["id"], 0.0), usims.get(memory["id"], 0.0))
+        semantic_boost = float(sem["weight"]) * cos if (sims or usims) else 0.0
         # Salience: a fact flagged as contradicting base/training knowledge must
         # outrank generic matches so a stored truth beats the model's prior.
         salience_boost = (
@@ -1018,7 +1233,14 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
             if n["id"] in pool:
                 m, s, label = pool[n["id"]]
                 if label == "direct":
-                    pool[n["id"]] = (m, s + conn_str * 0.2, label)
+                    # "Direct match is also connected" bonus, scaled by
+                    # memory.conn_boost_scale (default 0: benchmarked to favor
+                    # hub memories over the memory that answers the query).
+                    pool[n["id"]] = (
+                        m,
+                        s + conn_str * 0.2 * float(_cfg().memory["conn_boost_scale"]),
+                        label,
+                    )
             else:
                 prop_relevance = _relevance(n)
                 prop_score = (

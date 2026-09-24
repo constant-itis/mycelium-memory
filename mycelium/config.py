@@ -43,6 +43,22 @@ DEFAULTS: dict[str, Any] = {
                                          # conflicts with base knowledge; deliberately
                                          # > pin (0.1) so a learned exception beats a
                                          # confident-but-wrong default
+        # --- hybrid RRF candidate gathering ---
+        # Fuse a deep BM25 rank list with a deep cosine rank list (and, when the
+        # unit index exists, a best-unit-per-parent list) via Reciprocal Rank
+        # Fusion, then hand the fused top pool to the composite scorer. Rank-
+        # based fusion never mixes the incomparable BM25/cosine scales, and each
+        # arm degrades independently. hybrid_rrf = false restores the legacy
+        # shallow gather exactly.
+        "hybrid_rrf": True,
+        "rrf_depth": 50,                 # per-arm rank list depth
+        "rrf_k": 60,                     # standard RRF damping constant
+        "rrf_pool": 24,                  # fused candidates passed to scoring
+        # Scale on the "direct match is also connected" score bonus. Default 0:
+        # on a 30-question known-answer benchmark the bonus reordered direct
+        # results toward hub memories, costing 2 answer@1 and 0.06 MRR.
+        # Connected (propagated) results still surface regardless.
+        "conn_boost_scale": 0.0,
     },
     "foundry": {
         "enabled": True,
@@ -60,6 +76,18 @@ DEFAULTS: dict[str, Any] = {
         "top_k": 15,                    # semantic candidates merged into the pool
         "chunk_chars": 1400,            # long-content chunk size before mean-pool
         "timeout_seconds": 5,           # per embed call; keep recall/save snappy
+        # --- semantic-unit index (needs embed_url; adds a third RRF arm) ---
+        # A long memory's whole-document vector averages over its topics, so a
+        # fact stated mid-memory never cosine-matches its question. At save
+        # time, memories >= unit_min_chars are split into overlapping sentence
+        # windows and each window is embedded into the additive memory_units
+        # table. At recall, the query searches the unit index too and a memory
+        # scores by max(whole-memory cosine, best-unit cosine). Run
+        # `mycelium backfill-units` once to index pre-existing memories.
+        "units": True,
+        "unit_min_chars": 1200,         # only long memories get unit-indexed
+        "unit_win": 3,                  # sentences per window
+        "unit_stride": 2,               # sentence step (overlap = win - stride)
     },
     "dashboard": {
         # Read-only web graph explorer (`mycelium dash`). Binds localhost by

@@ -36,6 +36,22 @@ wake_summary_chars = 200       # per-item content trim in the /wake JSON payload
 # prior. Kept > pinned's implicit weight so a learned exception wins.
 contradicts_prior_boost = 0.25
 
+# Hybrid RRF candidate gathering: recall fuses a deep BM25 rank list with a
+# deep cosine rank list (and the semantic-unit list, see [semantic] units)
+# via Reciprocal Rank Fusion before scoring. On a 30-question known-answer
+# benchmark this raised answer-in-top-1 from 17/30 to 19/30 (24/30 with the
+# unit index) versus the legacy shallow gather. hybrid_rrf = false restores
+# the legacy behavior exactly.
+hybrid_rrf = true
+rrf_depth = 50                 # per-arm rank list depth
+rrf_k = 60                     # standard RRF damping constant
+rrf_pool = 24                  # fused candidates passed to scoring
+
+# Scale on the "direct match is also connected" ranking bonus. Default 0:
+# benchmarked to favor well-connected hub memories over the memory that
+# actually answers the query. Set to 1.0 to restore the old behavior.
+conn_boost_scale = 0.0
+
 # Optional: keyword clusters for the discover() pass.
 # Memories sharing any of these keywords get auto-linked. Add your own
 # domain terms (vendor names, project codenames, etc.) — leave empty to skip
@@ -74,6 +90,19 @@ weight = 10.0                          # how strongly cosine similarity drives r
 top_k = 15                             # semantic candidates merged into the recall pool
 chunk_chars = 1400                     # long memories are chunked + mean-pooled under this
 timeout_seconds = 5                    # per embed call; keeps recall/save responsive
+
+# Semantic-unit index. A long memory's single whole-document vector averages
+# over everything it discusses, so a fact stated mid-memory can be impossible
+# to reach by meaning. With units on, memories >= unit_min_chars are also
+# split into overlapping sentence windows at save time, each window embedded
+# into an additive memory_units table; at recall the query searches the unit
+# index too, and a memory ranks by its best-matching window. After enabling,
+# index existing memories once:  mycelium backfill-units
+# Storage cost is roughly 3 KB per unit, ~10-15 units per long memory.
+units = true
+unit_min_chars = 1200                  # only memories at least this long are unit-indexed
+unit_win = 3                           # sentences per window
+unit_stride = 2                        # sentence step (overlap = unit_win - unit_stride)
 
 [dashboard]
 # Read-only web graph explorer, served by `mycelium dash`. It opens the memory

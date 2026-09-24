@@ -98,3 +98,68 @@ The dataset format is just two lists:
 Export ~20–50 of your real memories, write the queries the way you'd actually
 search for them, and run `mycelium eval --dataset yours.json`. That number is the
 only one that matters for your decision.
+
+## Point-fact recall: hybrid RRF + the semantic-unit index
+
+The paraphrase benchmark above measures meaning-bridging. A different, very
+common recall shape is the **point-fact question**: "what port does the wiki
+listen on", "which Postgres version does the staging box run". The answer is a
+short literal fact stored somewhere in memory, and the failure mode is not
+vocabulary mismatch but *burial*: the fact lives inside a long memory whose
+single whole-document vector averages over everything else it discusses, while
+BM25 penalizes the memory for its length. No re-ranking can fix that, because
+the answer-bearing memory never enters the candidate list at all.
+
+Two retrieval changes target this shape (both on by default, both revertible
+in config):
+
+1. **Hybrid RRF gathering** (`[memory] hybrid_rrf`). Instead of a shallow
+   FTS list truncated to the display limit, recall fuses a deep BM25 rank list
+   and a deep cosine rank list with Reciprocal Rank Fusion and hands the fused
+   top pool to the scorer. Rank fusion never mixes the incomparable BM25 and
+   cosine scales, and each arm degrades on its own: embedder down leaves deep
+   BM25, an FTS error leaves cosine.
+2. **The semantic-unit index** (`[semantic] units`). Long memories are split
+   at save time into overlapping sentence windows, each embedded into the
+   additive `memory_units` table. At recall the query searches the unit index
+   too: a matching window pulls its parent memory into the pool, and the
+   memory scores by `max(whole-document cosine, best-window cosine)`. Both
+   halves matter. In development, pool entry alone was not enough: the target
+   reached the pool at rank 1 in two retrieval arms and was still re-ranked
+   out of the top results by its weak whole-document vector.
+
+On the development corpus (a ~3,000-memory real personal knowledge base, 30
+point-fact questions with known answer-bearing memories, graded on the top 6
+recall results), measured end to end through the full recall pipeline:
+
+| configuration | answer in top 1 | MRR |
+|---|---:|---:|
+| legacy gather | 17/30 | 0.68 |
+| hybrid RRF | 19/30 | 0.74 |
+| hybrid RRF + units | 24/30 | 0.86 |
+
+The same comparison on a smaller, older snapshot of the corpus showed the same
+ordering (16 → 17 → 24 of 27), so the effect is not an artifact of one corpus
+state. The RRF gain grows with corpus size; the unit-index gain is structural
+and shows up at every size.
+
+Costs: roughly 3 KB of storage per unit and 10 to 15 units per long memory;
+saving a long memory makes a handful of extra embedding calls (best-effort,
+never blocks the save); recall adds one similarity pass over the unit matrix.
+After enabling, index existing memories once with `mycelium backfill-units`.
+
+### Authoring your own point-fact set
+
+Write `(question, expected-substring)` pairs where the substring is the fact
+itself ("8080", "PostgreSQL 15"), then check whether the substring appears in
+your top recall results. Three integrity rules learned the hard way:
+
+- **Don't store the answers back into memory.** Saving notes that quote the
+  questions and answers plants fresh answer-bearing memories that recency
+  ranking then surfaces, and the benchmark silently starts grading its own
+  notes. Keep question sets in files outside the memory store.
+- **Benchmark on a copy.** `recall()` strengthens connections and bumps access
+  counts; A/B arms run on separate copies of the database or the first arm
+  biases the second.
+- **Prefer distinctive substrings.** Short numeric answers ("47") match
+  memories that contain the number incidentally and inflate every arm.

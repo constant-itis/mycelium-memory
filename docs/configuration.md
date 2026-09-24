@@ -59,6 +59,11 @@ The core knobs that shape the neural-network behavior.
 | `consolidation_threshold` | `10` | Per-project hot-memory count that triggers a "consider consolidating" nudge in `save()` output. | Raise if you tolerate larger projects without merging. |
 | `pinned_decay_floor` | `0.5` | Pinned memories' connections never decay below this strength. | Raise toward `1.0` to make pinned memories effectively permanent. |
 | `keyword_clusters` | `[]` | Keywords that `discover()` uses to bridge memories sharing any of them. | Set to a list of your domain terms (vendor names, project codenames) so `discover()` builds those structural bridges. Leave empty to skip the pass. |
+| `hybrid_rrf` | `true` | Recall gathers candidates by fusing deep BM25 and cosine rank lists (Reciprocal Rank Fusion) instead of a shallow FTS cut. See [benchmarks](benchmarks.md#point-fact-recall-hybrid-rrf--the-semantic-unit-index). | Set `false` to restore the legacy shallow gather exactly. |
+| `rrf_depth` | `50` | Per-arm rank list depth feeding the fusion. | Raise on very large corpora if point-fact recall misses; lower to shave latency. |
+| `rrf_k` | `60` | Standard RRF damping constant. | Rarely. Lower values weight top ranks more heavily. |
+| `rrf_pool` | `24` | Fused candidates handed to the scorer. | Raise for wider pools (more rescue chances, slower scoring); lower for sharper, faster recall. |
+| `conn_boost_scale` | `0.0` | Scale on the "direct match is also connected" score bonus. | Benchmarked at 0: the bonus favors well-connected hubs over the memory that answers. Set `1.0` to restore the old behavior. |
 
 Example:
 
@@ -108,6 +113,10 @@ after enabling; new memories are embedded automatically on save.
 | `top_k` | `15` | How many semantically-nearest memories are merged into the recall pool. | Raise for wider semantic reach; lower for tighter, faster recall. |
 | `chunk_chars` | `1400` | Long memories are split into chunks of this size and mean-pooled into one stored vector. | Lower if your embedding model has a small context window. |
 | `timeout_seconds` | `5` | Per embed HTTP call. Recall/save fall back gracefully if exceeded. | Raise on a slow/remote endpoint; the trade-off is slower recall/save. |
+| `units` | `true` | Semantic-unit index: long memories are split into overlapping sentence windows at save time, and recall matches the query against windows too, so a fact buried mid-memory is reachable. Run `mycelium backfill-units` once after enabling. | Set `false` to skip unit indexing (smaller DB, weaker point-fact recall on long memories). |
+| `unit_min_chars` | `1200` | Only memories at least this long are unit-indexed; short memories already behave like single units. | Lower if your "long" notes are shorter; raise to index fewer memories. |
+| `unit_win` | `3` | Sentences per window. | Rarely. |
+| `unit_stride` | `2` | Sentence step between windows (overlap = win - stride). | Rarely. |
 
 ```toml
 [semantic]
