@@ -74,7 +74,8 @@ def run_eval(dataset_path: str | None = None) -> dict:
                              embed_url=(embed_url if with_semantic else ""))
         return _config.Config(
             server=d["server"], storage=d["storage"], memory=d["memory"],
-            foundry=d["foundry"], semantic=d["semantic"], source="eval",
+            foundry=d["foundry"], semantic=d["semantic"],
+            dashboard=d["dashboard"], source="eval",
         )
 
     # Build the corpus once, with semantic on if available (so vectors exist).
