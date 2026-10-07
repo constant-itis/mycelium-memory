@@ -59,6 +59,11 @@ DEFAULTS: dict[str, Any] = {
         # results toward hub memories, costing 2 answer@1 and 0.06 MRR.
         # Connected (propagated) results still surface regardless.
         "conn_boost_scale": 0.0,
+        # Score of a connected (propagated) memory = its own relevance x
+        # min(connection strength, 1) x propagate_scale. Strengths exceed 1
+        # after co-access; uncapped, hubs outranked the answer (a 99-memory
+        # team brain with semantic on: recall@5 3% uncapped vs 83% capped).
+        "propagate_scale": 0.5,
     },
     "foundry": {
         "enabled": True,
