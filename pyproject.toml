@@ -20,7 +20,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries",
 ]
 dependencies = [
-    "mcp[cli]>=1.0",
+    "mcp[cli]>=1.0,<2",  # mcp 2.x renamed FastMCP (server API changed)
 ]
 
 [project.optional-dependencies]
