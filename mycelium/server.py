@@ -1242,9 +1242,16 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
                         label,
                     )
             else:
+                # Connection strength grows past 1.0 with co-access (dense or
+                # seeded graphs reach 5+), so used raw as a multiplier it lets a
+                # hub connected to several direct matches outscore them all,
+                # worst with semantic on, where every memory has some cosine.
+                # Cap it at 1 and damp by memory.propagate_scale: a connected
+                # memory surfaces next to direct matches, not above them.
+                eff = min(conn_str, 1.0) * float(_cfg().memory["propagate_scale"])
                 prop_relevance = _relevance(n)
                 prop_score = (
-                    prop_relevance * conn_str if prop_relevance > 0 else conn_str * 0.1
+                    prop_relevance * eff if prop_relevance > 0 else eff * 0.1
                 )
                 if n["id"] not in pool or pool[n["id"]][1] < prop_score:
                     pool[n["id"]] = (n, prop_score, "connected")

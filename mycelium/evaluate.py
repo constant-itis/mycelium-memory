@@ -23,16 +23,18 @@ from . import config as _config
 from . import server as _server
 
 KS = (1, 3, 5)
+_RESULT_LINE = re.compile(r"^\s+\S\s\[#(\d+)\]")
 _DEFAULT_DATASET = Path(__file__).parent / "eval_data" / "sample.json"
 
 
 def _ranked_ids(recall_output: str) -> list[int]:
     """Pull memory ids, in order, from recall()'s formatted output."""
+    # Only result lines ("  ● [#12] ..." / "  ↔ [#12] ..."). Memory content is
+    # printed too and may itself mention "#123" (index memories, order numbers),
+    # which must not count as results.
     ids: list[int] = []
     for line in recall_output.splitlines():
-        if line.startswith("##"):
-            continue
-        m = re.search(r"#(\d+)", line)
+        m = _RESULT_LINE.match(line)
         if m:
             ids.append(int(m.group(1)))
     return ids

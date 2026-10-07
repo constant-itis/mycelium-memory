@@ -64,6 +64,7 @@ The core knobs that shape the neural-network behavior.
 | `rrf_k` | `60` | Standard RRF damping constant. | Rarely. Lower values weight top ranks more heavily. |
 | `rrf_pool` | `24` | Fused candidates handed to the scorer. | Raise for wider pools (more rescue chances, slower scoring); lower for sharper, faster recall. |
 | `conn_boost_scale` | `0.0` | Scale on the "direct match is also connected" score bonus. | Benchmarked at 0: the bonus favors well-connected hubs over the memory that answers. Set `1.0` to restore the old behavior. |
+| `propagate_scale` | `0.5` | Connected-memory score = relevance x min(connection strength, 1) x this. | Strength is capped at 1 because co-access pushes it past 1 and hubs then outranked direct answers (dense 99-memory graph with semantic on: recall@5 3% uncapped, 83% capped). Raise toward `1.0` if connected memories should compete harder. |
 
 Example:
 

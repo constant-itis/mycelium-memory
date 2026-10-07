@@ -52,6 +52,12 @@ rrf_pool = 24                  # fused candidates passed to scoring
 # actually answers the query. Set to 1.0 to restore the old behavior.
 conn_boost_scale = 0.0
 
+# Score of a connected (propagated) memory = its relevance x min(connection
+# strength, 1) x propagate_scale. Strengths grow past 1 with co-access; used raw
+# they let hubs outrank the memory that answers. Raise toward 1.0 to let
+# connected memories compete harder with direct matches.
+propagate_scale = 0.5
+
 # Optional: keyword clusters for the discover() pass.
 # Memories sharing any of these keywords get auto-linked. Add your own
 # domain terms (vendor names, project codenames, etc.) — leave empty to skip
