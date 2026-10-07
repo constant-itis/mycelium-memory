@@ -42,6 +42,9 @@ appear in the same recall result (or in the same session of recalls), the
 edge between them gets stronger. Strong edges propagate during recall —
 finding one memory pulls its cluster.
 
+Strength is not capped at 1 in storage, and recall treats it as a bounded
+signal (see [Hub memories outranking the answer](configuration.md#hub-memories-outranking-the-answer)).
+
 Connections are also auto-created when you `save()` something similar to
 existing content (FTS-similarity at write time).
 
