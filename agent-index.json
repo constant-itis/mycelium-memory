@@ -158,9 +158,9 @@
       "paths": [
         "mycelium/server.py:73-90",
         "mycelium/server.py:42-46",
-        "mycelium/server.py:280-281",
-        "mycelium/server.py:657-670",
-        "mycelium/server.py:584-654"
+        "mycelium/server.py:295-296",
+        "mycelium/server.py:850-863",
+        "mycelium/server.py:723-793"
       ]
     },
     {
@@ -175,9 +175,9 @@
         "fn:mycelium.config:Config.to_dict"
       ],
       "paths": [
-        "mycelium/config.py:193-224",
+        "mycelium/config.py:226-257",
         "mycelium/server.py:49-57",
-        "mycelium/config.py:182-190"
+        "mycelium/config.py:215-223"
       ]
     },
     {
@@ -214,11 +214,11 @@
         "mycelium/embeddings.py:84-86",
         "mycelium/embeddings.py:89-90",
         "mycelium/embeddings.py:39-47",
-        "mycelium/server.py:321-348",
-        "mycelium/server.py:351-372",
+        "mycelium/server.py:336-363",
+        "mycelium/server.py:366-387",
         "mycelium/embeddings.py:50-52",
-        "mycelium/server.py:284-293",
-        "mycelium/server.py:301-317"
+        "mycelium/server.py:299-308",
+        "mycelium/server.py:316-332"
       ]
     },
     {
@@ -238,12 +238,12 @@
         "fn:mycelium.server:_track_session_access"
       ],
       "paths": [
-        "mycelium/server.py:423-470",
-        "mycelium/server.py:409-415",
-        "mycelium/server.py:473-495",
-        "mycelium/server.py:523-553",
-        "mycelium/server.py:498-520",
-        "mycelium/server.py:679-688"
+        "mycelium/server.py:562-609",
+        "mycelium/server.py:548-554",
+        "mycelium/server.py:612-634",
+        "mycelium/server.py:662-692",
+        "mycelium/server.py:637-659",
+        "mycelium/server.py:872-881"
       ]
     },
     {
@@ -260,7 +260,7 @@
         "fn:mycelium.server:_check_duplicates"
       ],
       "paths": [
-        "mycelium/server.py:707-742"
+        "mycelium/server.py:900-935"
       ]
     },
     {
@@ -291,10 +291,10 @@
         "fn:mycelium.server:_column_exists"
       ],
       "paths": [
-        "mycelium/server.py:1209-1234",
-        "mycelium/server.py:1237-1251",
-        "mycelium/server.py:1193-1206",
-        "mycelium/server.py:1183-1190"
+        "mycelium/server.py:1438-1463",
+        "mycelium/server.py:1466-1480",
+        "mycelium/server.py:1422-1435",
+        "mycelium/server.py:1412-1419"
       ]
     },
     {
@@ -320,7 +320,7 @@
         "mycelium/maintain.py:192-224",
         "mycelium/maintain.py:72-108",
         "mycelium/maintain.py:45-64",
-        "mycelium/server.py:1394-1422"
+        "mycelium/server.py:1623-1651"
       ]
     },
     {
@@ -381,7 +381,7 @@
         "fn:mycelium.cli:main"
       ],
       "paths": [
-        "mycelium/cli.py:131-197"
+        "mycelium/cli.py:167-257"
       ]
     },
     {
@@ -396,7 +396,7 @@
         "fn:mycelium.evaluate:run_eval"
       ],
       "paths": [
-        "mycelium/evaluate.py:56-115"
+        "mycelium/evaluate.py:58-118"
       ]
     }
   ],
@@ -404,73 +404,73 @@
     {
       "name": "connections",
       "implemented_by": "comp.read_path",
-      "path": "mycelium/server.py:1694-1711",
+      "path": "mycelium/server.py:1923-1940",
       "summary": "Show all connections for a specific memory - the local network topology."
     },
     {
       "name": "consolidate",
       "implemented_by": "comp.maintenance",
-      "path": "mycelium/server.py:1427-1477",
+      "path": "mycelium/server.py:1656-1706",
       "summary": "Show memories ready for consolidation."
     },
     {
       "name": "context",
       "implemented_by": "comp.read_path",
-      "path": "mycelium/server.py:1074-1163",
+      "path": "mycelium/server.py:1303-1392",
       "summary": "Load startup context - the hubs of your memory network."
     },
     {
       "name": "discover",
       "implemented_by": "comp.discover",
-      "path": "mycelium/server.py:1482-1609",
+      "path": "mycelium/server.py:1711-1838",
       "summary": "Discover hidden connections in the memory network."
     },
     {
       "name": "forget",
       "implemented_by": "comp.maintenance",
-      "path": "mycelium/server.py:1614-1639",
+      "path": "mycelium/server.py:1843-1868",
       "summary": "Delete a memory and all its connections."
     },
     {
       "name": "maintain",
       "implemented_by": "comp.maintenance",
-      "path": "mycelium/server.py:1664-1689",
+      "path": "mycelium/server.py:1893-1918",
       "summary": "Periodic memory consolidation - snapshot, plan, cold-mark, orphan rescue."
     },
     {
       "name": "pin",
       "implemented_by": "comp.write_path",
-      "path": "mycelium/server.py:1644-1659",
+      "path": "mycelium/server.py:1873-1888",
       "summary": "Pin or unpin a memory. Pinned memories' connections never decay below the"
     },
     {
       "name": "recall",
       "implemented_by": "comp.read_path",
-      "path": "mycelium/server.py:909-1069",
+      "path": "mycelium/server.py:1109-1298",
       "summary": "Search memories and propagate through connections."
     },
     {
       "name": "recent",
       "implemented_by": "comp.episodic",
-      "path": "mycelium/server.py:1256-1295",
+      "path": "mycelium/server.py:1485-1524",
       "summary": "Recent episodic digest - what's been worked on lately, newest first."
     },
     {
       "name": "resolve",
       "implemented_by": "comp.write_path",
-      "path": "mycelium/server.py:868-904",
+      "path": "mycelium/server.py:1068-1104",
       "summary": "Create a disambiguation memory for an ambiguous term."
     },
     {
       "name": "review",
       "implemented_by": "comp.maintenance",
-      "path": "mycelium/server.py:1334-1386",
+      "path": "mycelium/server.py:1563-1615",
       "summary": "Review the health of the memory network."
     },
     {
       "name": "save",
       "implemented_by": "comp.write_path",
-      "path": "mycelium/server.py:747-863",
+      "path": "mycelium/server.py:940-1063",
       "summary": "Save a memory. Keep it short and dense - one idea per memory."
     }
   ],
@@ -488,7 +488,8 @@
         "Should you enable it?",
         "What the numbers look like",
         "Honest caveats",
-        "Make it your own"
+        "Make it your own",
+        "Point-fact recall: hybrid RRF + the semantic-unit index"
       ]
     },
     {

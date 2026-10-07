@@ -25,18 +25,18 @@ straight to a file span instead of crawling; see `AGENTS.md` for the protocol.
 - [seeding.md](docs/seeding.md): Seeding mycelium from your existing stuff
 
 ## MCP tools
-- `connections` (mycelium/server.py:1694-1711): Show all connections for a specific memory - the local network topology.
-- `consolidate` (mycelium/server.py:1427-1477): Show memories ready for consolidation.
-- `context` (mycelium/server.py:1074-1163): Load startup context - the hubs of your memory network.
-- `discover` (mycelium/server.py:1482-1609): Discover hidden connections in the memory network.
-- `forget` (mycelium/server.py:1614-1639): Delete a memory and all its connections.
-- `maintain` (mycelium/server.py:1664-1689): Periodic memory consolidation - snapshot, plan, cold-mark, orphan rescue.
-- `pin` (mycelium/server.py:1644-1659): Pin or unpin a memory. Pinned memories' connections never decay below the
-- `recall` (mycelium/server.py:909-1069): Search memories and propagate through connections.
-- `recent` (mycelium/server.py:1256-1295): Recent episodic digest - what's been worked on lately, newest first.
-- `resolve` (mycelium/server.py:868-904): Create a disambiguation memory for an ambiguous term.
-- `review` (mycelium/server.py:1334-1386): Review the health of the memory network.
-- `save` (mycelium/server.py:747-863): Save a memory. Keep it short and dense - one idea per memory.
+- `connections` (mycelium/server.py:1923-1940): Show all connections for a specific memory - the local network topology.
+- `consolidate` (mycelium/server.py:1656-1706): Show memories ready for consolidation.
+- `context` (mycelium/server.py:1303-1392): Load startup context - the hubs of your memory network.
+- `discover` (mycelium/server.py:1711-1838): Discover hidden connections in the memory network.
+- `forget` (mycelium/server.py:1843-1868): Delete a memory and all its connections.
+- `maintain` (mycelium/server.py:1893-1918): Periodic memory consolidation - snapshot, plan, cold-mark, orphan rescue.
+- `pin` (mycelium/server.py:1873-1888): Pin or unpin a memory. Pinned memories' connections never decay below the
+- `recall` (mycelium/server.py:1109-1298): Search memories and propagate through connections.
+- `recent` (mycelium/server.py:1485-1524): Recent episodic digest - what's been worked on lately, newest first.
+- `resolve` (mycelium/server.py:1068-1104): Create a disambiguation memory for an ambiguous term.
+- `review` (mycelium/server.py:1563-1615): Review the health of the memory network.
+- `save` (mycelium/server.py:940-1063): Save a memory. Keep it short and dense - one idea per memory.
 
 ## Components
 - `comp.substrate`: Storage, config, FTS and formatting that every tool composes.
