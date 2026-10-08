@@ -147,6 +147,7 @@ not a silent-corruption risk.
 
 | Symptom | Knob to try |
 |---|---|
+| Recall got *worse* after enabling semantic, or the same heavily linked memories show up for unrelated queries | Connection strength may be dominating the ranking. Check it (see [Hub memories outranking the answer](#hub-memories-outranking-the-answer)); if you are on a version without the strength cap, upgrade. Keep `conn_boost_scale = 0` and `propagate_scale` at `0.5` or lower |
 | `recall()` keeps missing memories you remember | Lower `prune_threshold`, raise `decay_tau_days`, raise `recall_propagate` |
 | `recall()` misses paraphrased / synonym queries (right idea, different words) | Enable semantic recall — set `[semantic] embed_url`, then `mycelium backfill-vectors` |
 | You changed `embed_model` and recall got worse, or logs warn about "stale vectors" | Run `mycelium backfill-vectors` to re-embed every memory under the new model |
@@ -155,6 +156,44 @@ not a silent-corruption risk.
 | The DB is bloating | Raise `prune_threshold`, lower `decay_tau_days`, run `discover()` + `consolidate()` more often |
 | `discover()` never makes useful keyword bridges | Populate `keyword_clusters` with terms from your domain |
 | Foundry log dir filling up | Run `mycelium foundry ingest` periodically, then trim old `*.jsonl` |
+
+## Hub memories outranking the answer
+
+Connection strength grows with every co-access and is **not** limited to 1.
+A connected (propagated) memory is scored from its own relevance times its
+connection strength, so how strength enters the formula matters:
+
+- With **keyword-only** recall, most neighbors of a hit have no keyword match,
+  so their relevance is near zero and a large strength changes little.
+- With **semantic recall on**, every memory has a cosine score, so every
+  neighbor has real relevance. An unbounded strength multiplier then lets a
+  well-linked hub beat the memory that actually answers the query.
+- Small, densely co-accessed brains are hit hardest: the same few pairs are
+  recalled together over and over, so their strengths climb fast. In one
+  99-memory team brain, 23% of connections were above 1 (max 5.5) and
+  recall@5 fell to 3% with semantic on; capping strength restored it to 83%.
+  A 3,500-memory personal brain with decay had 2.4% of connections above 1
+  (average 0.53) and saw no measurable difference from the cap.
+
+Current versions use `min(strength, 1) x propagate_scale`, so strength can no
+longer inflate a score. To see whether your brain is a candidate:
+
+```bash
+sqlite3 ~/.mycelium/memory.db \
+  "select count(*), round(avg(strength),2), max(strength), sum(strength>1) from connections"
+```
+
+If many connections are above 1 and recall surfaces the same hubs for
+unrelated queries, make sure you are on a version with the cap. To confirm a
+change helps, write 10-15 reworded known-answer queries (same meaning,
+different words) and compare rank-of-target before and after, using a **copy**
+of your DB. `mycelium eval` builds a fresh throwaway DB from a dataset, so it
+will not show strength effects, which only appear after real co-access.
+
+Copy gotcha: a file-copy or `.backup` of a live database can leave the FTS
+index inconsistent, and recall then fails with `database disk image is
+malformed` even though the live DB is fine. On the copy only, run
+`INSERT INTO memories_fts(memories_fts) VALUES('rebuild');`.
 
 ## Inspecting the live config
 
