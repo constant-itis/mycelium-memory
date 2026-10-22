@@ -20,7 +20,7 @@
       "id": "mod:mycelium.config",
       "module": "mycelium.config",
       "path": "mycelium/config.py",
-      "loc": 258,
+      "loc": 259,
       "doc": "Config loader."
     },
     {
@@ -83,7 +83,7 @@
       "id": "mod:mycelium.server",
       "module": "mycelium.server",
       "path": "mycelium/server.py",
-      "loc": 2047,
+      "loc": 2076,
       "doc": "Mycelium \u2014 neural-style memory MCP server."
     }
   ],
@@ -264,8 +264,8 @@
       "name": "_config_search_paths",
       "qualname": "_config_search_paths",
       "path": "mycelium/config.py",
-      "line_start": 106,
-      "line_end": 116,
+      "line_start": 107,
+      "line_end": 117,
       "doc": "Where to look for config.toml, in order of precedence.",
       "decorators": [],
       "mcp_tool": false
@@ -277,8 +277,8 @@
       "name": "_deep_merge",
       "qualname": "_deep_merge",
       "path": "mycelium/config.py",
-      "line_start": 119,
-      "line_end": 127,
+      "line_start": 120,
+      "line_end": 128,
       "doc": "Recursively merge overlay into base (overlay wins on leaves).",
       "decorators": [],
       "mcp_tool": false
@@ -290,8 +290,8 @@
       "name": "_coerce",
       "qualname": "_coerce",
       "path": "mycelium/config.py",
-      "line_start": 130,
-      "line_end": 140,
+      "line_start": 131,
+      "line_end": 141,
       "doc": "Coerce a string env var to the type of the existing default.",
       "decorators": [],
       "mcp_tool": false
@@ -303,8 +303,8 @@
       "name": "_apply_env_overrides",
       "qualname": "_apply_env_overrides",
       "path": "mycelium/config.py",
-      "line_start": 143,
-      "line_end": 169,
+      "line_start": 144,
+      "line_end": 170,
       "doc": "MYCELIUM_SERVER_PORT=9000 -> cfg['server']['port'] = 9000.",
       "decorators": [],
       "mcp_tool": false
@@ -316,8 +316,8 @@
       "name": "_expand_paths",
       "qualname": "_expand_paths",
       "path": "mycelium/config.py",
-      "line_start": 172,
-      "line_end": 186,
+      "line_start": 173,
+      "line_end": 187,
       "doc": "Expand ~ and $VAR in known path keys.",
       "decorators": [],
       "mcp_tool": false
@@ -329,8 +329,8 @@
       "name": "Config",
       "qualname": "Config",
       "path": "mycelium/config.py",
-      "line_start": 190,
-      "line_end": 223,
+      "line_start": 191,
+      "line_end": 224,
       "doc": null,
       "decorators": [
         "dataclass"
@@ -344,8 +344,8 @@
       "name": "semantic_enabled",
       "qualname": "Config.semantic_enabled",
       "path": "mycelium/config.py",
-      "line_start": 200,
-      "line_end": 201,
+      "line_start": 201,
+      "line_end": 202,
       "doc": null,
       "decorators": [
         "property"
@@ -359,8 +359,8 @@
       "name": "db_path",
       "qualname": "Config.db_path",
       "path": "mycelium/config.py",
-      "line_start": 204,
-      "line_end": 205,
+      "line_start": 205,
+      "line_end": 206,
       "doc": null,
       "decorators": [
         "property"
@@ -374,8 +374,8 @@
       "name": "foundry_db_path",
       "qualname": "Config.foundry_db_path",
       "path": "mycelium/config.py",
-      "line_start": 208,
-      "line_end": 209,
+      "line_start": 209,
+      "line_end": 210,
       "doc": null,
       "decorators": [
         "property"
@@ -389,8 +389,8 @@
       "name": "foundry_log_dir",
       "qualname": "Config.foundry_log_dir",
       "path": "mycelium/config.py",
-      "line_start": 212,
-      "line_end": 213,
+      "line_start": 213,
+      "line_end": 214,
       "doc": null,
       "decorators": [
         "property"
@@ -404,8 +404,8 @@
       "name": "to_dict",
       "qualname": "Config.to_dict",
       "path": "mycelium/config.py",
-      "line_start": 215,
-      "line_end": 223,
+      "line_start": 216,
+      "line_end": 224,
       "doc": null,
       "decorators": [],
       "mcp_tool": false
@@ -417,8 +417,8 @@
       "name": "load",
       "qualname": "load",
       "path": "mycelium/config.py",
-      "line_start": 226,
-      "line_end": 257,
+      "line_start": 227,
+      "line_end": 258,
       "doc": "Load config from disk + env, layered over defaults.",
       "decorators": [],
       "mcp_tool": false
@@ -1373,14 +1373,27 @@
       "mcp_tool": false
     },
     {
+      "id": "fn:mycelium.server:_proxy_identity",
+      "kind": "function",
+      "module": "mycelium.server",
+      "name": "_proxy_identity",
+      "qualname": "_proxy_identity",
+      "path": "mycelium/server.py",
+      "line_start": 900,
+      "line_end": 922,
+      "doc": "Caller identity from the request header named by [server] identity_header.",
+      "decorators": [],
+      "mcp_tool": false
+    },
+    {
       "id": "fn:mycelium.server:_check_duplicates",
       "kind": "function",
       "module": "mycelium.server",
       "name": "_check_duplicates",
       "qualname": "_check_duplicates",
       "path": "mycelium/server.py",
-      "line_start": 900,
-      "line_end": 935,
+      "line_start": 925,
+      "line_end": 960,
       "doc": null,
       "decorators": [],
       "mcp_tool": false
@@ -1392,8 +1405,8 @@
       "name": "save",
       "qualname": "save",
       "path": "mycelium/server.py",
-      "line_start": 940,
-      "line_end": 1063,
+      "line_start": 965,
+      "line_end": 1089,
       "doc": "Save a memory. Keep it short and dense \u2014 one idea per memory.",
       "decorators": [
         "mcp.tool",
@@ -1408,8 +1421,8 @@
       "name": "resolve",
       "qualname": "resolve",
       "path": "mycelium/server.py",
-      "line_start": 1068,
-      "line_end": 1104,
+      "line_start": 1094,
+      "line_end": 1130,
       "doc": "Create a disambiguation memory for an ambiguous term.",
       "decorators": [
         "mcp.tool",
@@ -1424,8 +1437,8 @@
       "name": "recall",
       "qualname": "recall",
       "path": "mycelium/server.py",
-      "line_start": 1109,
-      "line_end": 1298,
+      "line_start": 1135,
+      "line_end": 1325,
       "doc": "Search memories and propagate through connections.",
       "decorators": [
         "mcp.tool",
@@ -1440,8 +1453,8 @@
       "name": "context",
       "qualname": "context",
       "path": "mycelium/server.py",
-      "line_start": 1303,
-      "line_end": 1392,
+      "line_start": 1330,
+      "line_end": 1420,
       "doc": "Load startup context \u2014 the hubs of your memory network.",
       "decorators": [
         "mcp.tool",
@@ -1456,8 +1469,8 @@
       "name": "_column_exists",
       "qualname": "_column_exists",
       "path": "mycelium/server.py",
-      "line_start": 1412,
-      "line_end": 1419,
+      "line_start": 1440,
+      "line_end": 1447,
       "doc": "True if `col` exists on `table`. Lets recent() run on schemas both before",
       "decorators": [],
       "mcp_tool": false
@@ -1469,8 +1482,8 @@
       "name": "_humanize_age",
       "qualname": "_humanize_age",
       "path": "mycelium/server.py",
-      "line_start": 1422,
-      "line_end": 1435,
+      "line_start": 1450,
+      "line_end": 1463,
       "doc": "Compact age like '9m' / '3h' / '5d' from an ISO timestamp.",
       "decorators": [],
       "mcp_tool": false
@@ -1482,8 +1495,8 @@
       "name": "_recent_rows",
       "qualname": "_recent_rows",
       "path": "mycelium/server.py",
-      "line_start": 1438,
-      "line_end": 1463,
+      "line_start": 1466,
+      "line_end": 1491,
       "doc": "Recency-ranked memories (episodic view), newest first. READ-ONLY: no",
       "decorators": [],
       "mcp_tool": false
@@ -1495,8 +1508,8 @@
       "name": "_recent_summary_line",
       "qualname": "_recent_summary_line",
       "path": "mycelium/server.py",
-      "line_start": 1466,
-      "line_end": 1480,
+      "line_start": 1494,
+      "line_end": 1508,
       "doc": "One dense line for the digest: id, age, markers, trimmed content.",
       "decorators": [],
       "mcp_tool": false
@@ -1508,8 +1521,8 @@
       "name": "recent",
       "qualname": "recent",
       "path": "mycelium/server.py",
-      "line_start": 1485,
-      "line_end": 1524,
+      "line_start": 1513,
+      "line_end": 1552,
       "doc": "Recent episodic digest \u2014 what's been worked on lately, newest first.",
       "decorators": [
         "mcp.tool",
@@ -1524,8 +1537,8 @@
       "name": "wake_route",
       "qualname": "wake_route",
       "path": "mycelium/server.py",
-      "line_start": 1528,
-      "line_end": 1558,
+      "line_start": 1556,
+      "line_end": 1586,
       "doc": "Read-only recency digest for a SessionStart shell hook to curl.",
       "decorators": [
         "mcp.custom_route"
@@ -1539,8 +1552,8 @@
       "name": "review",
       "qualname": "review",
       "path": "mycelium/server.py",
-      "line_start": 1563,
-      "line_end": 1615,
+      "line_start": 1591,
+      "line_end": 1643,
       "doc": "Review the health of the memory network.",
       "decorators": [
         "mcp.tool",
@@ -1555,8 +1568,8 @@
       "name": "_protection_reason",
       "qualname": "_protection_reason",
       "path": "mycelium/server.py",
-      "line_start": 1623,
-      "line_end": 1651,
+      "line_start": 1651,
+      "line_end": 1679,
       "doc": "Why a memory must NOT be auto-forgotten, or None if it is fair game.",
       "decorators": [],
       "mcp_tool": false
@@ -1568,8 +1581,8 @@
       "name": "consolidate",
       "qualname": "consolidate",
       "path": "mycelium/server.py",
-      "line_start": 1656,
-      "line_end": 1706,
+      "line_start": 1684,
+      "line_end": 1734,
       "doc": "Show memories ready for consolidation.",
       "decorators": [
         "mcp.tool",
@@ -1584,8 +1597,8 @@
       "name": "discover",
       "qualname": "discover",
       "path": "mycelium/server.py",
-      "line_start": 1711,
-      "line_end": 1838,
+      "line_start": 1739,
+      "line_end": 1866,
       "doc": "Discover hidden connections in the memory network.",
       "decorators": [
         "mcp.tool",
@@ -1600,8 +1613,8 @@
       "name": "forget",
       "qualname": "forget",
       "path": "mycelium/server.py",
-      "line_start": 1843,
-      "line_end": 1868,
+      "line_start": 1871,
+      "line_end": 1896,
       "doc": "Delete a memory and all its connections.",
       "decorators": [
         "mcp.tool",
@@ -1616,8 +1629,8 @@
       "name": "pin",
       "qualname": "pin",
       "path": "mycelium/server.py",
-      "line_start": 1873,
-      "line_end": 1888,
+      "line_start": 1901,
+      "line_end": 1916,
       "doc": "Pin or unpin a memory. Pinned memories' connections never decay below the",
       "decorators": [
         "mcp.tool",
@@ -1632,8 +1645,8 @@
       "name": "maintain",
       "qualname": "maintain",
       "path": "mycelium/server.py",
-      "line_start": 1893,
-      "line_end": 1918,
+      "line_start": 1921,
+      "line_end": 1946,
       "doc": "Periodic memory consolidation \u2014 snapshot, plan, cold-mark, orphan rescue.",
       "decorators": [
         "mcp.tool",
@@ -1648,8 +1661,8 @@
       "name": "connections",
       "qualname": "connections",
       "path": "mycelium/server.py",
-      "line_start": 1923,
-      "line_end": 1940,
+      "line_start": 1951,
+      "line_end": 1968,
       "doc": "Show all connections for a specific memory \u2014 the local network topology.",
       "decorators": [
         "mcp.tool",
@@ -1664,8 +1677,8 @@
       "name": "serve",
       "qualname": "serve",
       "path": "mycelium/server.py",
-      "line_start": 2019,
-      "line_end": 2042,
+      "line_start": 2048,
+      "line_end": 2071,
       "doc": "Start the MCP server. Args override config.",
       "decorators": [],
       "mcp_tool": false
@@ -2212,6 +2225,10 @@
     },
     {
       "from": "fn:mycelium.server:save",
+      "to": "fn:mycelium.server:_proxy_identity"
+    },
+    {
+      "from": "fn:mycelium.server:save",
       "to": "fn:mycelium.server:_check_duplicates"
     },
     {
@@ -2221,6 +2238,10 @@
     {
       "from": "fn:mycelium.server:save",
       "to": "fn:mycelium.server:_embed_memory"
+    },
+    {
+      "from": "fn:mycelium.server:recall",
+      "to": "fn:mycelium.server:_proxy_identity"
     },
     {
       "from": "fn:mycelium.server:recall",
@@ -2245,6 +2266,10 @@
     {
       "from": "fn:mycelium.server:recall",
       "to": "fn:mycelium.server:_track_session_access"
+    },
+    {
+      "from": "fn:mycelium.server:context",
+      "to": "fn:mycelium.server:_proxy_identity"
     },
     {
       "from": "fn:mycelium.server:context",
@@ -2417,6 +2442,10 @@
     {
       "from": "fn:mycelium.server:_decay_strength",
       "to": "fn:mycelium.server:_cfg"
+    },
+    {
+      "from": "fn:mycelium.server:_proxy_identity",
+      "to": "fn:mycelium.server:_cfg"
     }
   ],
   "mcp_tools": [
@@ -2549,7 +2578,7 @@
     },
     {
       "path": "docs/concepts.md",
-      "loc": 301,
+      "loc": 304,
       "headings": [
         {
           "level": 1,
@@ -2584,88 +2613,88 @@
         {
           "level": 3,
           "text": "Decay",
-          "line": 48
+          "line": 51
         },
         {
           "level": 3,
           "text": "Tiers \u2014 `hot` vs `cold`",
-          "line": 65
+          "line": 68
         },
         {
           "level": 3,
           "text": "Pinning \u2014 protecting facts from decay",
-          "line": 85
+          "line": 88
         },
         {
           "level": 3,
           "text": "Confidence",
-          "line": 101
+          "line": 104
         },
         {
           "level": 3,
           "text": "Project field",
-          "line": 113
+          "line": 116
         },
         {
           "level": 3,
           "text": "Resolvers \u2014 disambiguation",
-          "line": 122
+          "line": 125
         },
         {
           "level": 2,
           "text": "Conventions baked into maintenance",
-          "line": 136
+          "line": 139
         },
         {
           "level": 3,
           "text": "Session checkpoints",
-          "line": 138
+          "line": 141
         },
         {
           "level": 3,
           "text": "Supersedes markers",
-          "line": 148
+          "line": 151
         },
         {
           "level": 2,
           "text": "Lifecycle \u2014 what happens to a memory over time",
-          "line": 162
+          "line": 165
         },
         {
           "level": 2,
           "text": "Foundry \u2014 behavioral memory",
-          "line": 188
+          "line": 191
         },
         {
           "level": 2,
           "text": "All the MCP tools \u2014 when each is for",
-          "line": 217
+          "line": 220
         },
         {
           "level": 2,
           "text": "Slash skills (companion conventions)",
-          "line": 238
+          "line": 241
         },
         {
           "level": 2,
           "text": "STM \u2014 short-term memory hook (separate concept)",
-          "line": 255
+          "line": 258
         },
         {
           "level": 2,
           "text": "Mental model \u2014 the gardener, not the librarian",
-          "line": 279
+          "line": 282
         },
         {
           "level": 2,
           "text": "Further reading",
-          "line": 296
+          "line": 299
         }
       ]
     },
     {
       "path": "docs/configuration.md",
-      "loc": 166,
+      "loc": 214,
       "headings": [
         {
           "level": 1,
@@ -2680,37 +2709,42 @@
         {
           "level": 2,
           "text": "`[storage]`",
-          "line": 38
+          "line": 47
         },
         {
           "level": 2,
           "text": "`[memory]`",
-          "line": 48
+          "line": 57
         },
         {
           "level": 2,
           "text": "`[foundry]`",
-          "line": 77
+          "line": 86
         },
         {
           "level": 2,
           "text": "`[foundry.retention]`",
-          "line": 88
+          "line": 97
         },
         {
           "level": 2,
           "text": "`[semantic]`",
-          "line": 100
+          "line": 109
         },
         {
           "level": 2,
           "text": "Tuning by symptom",
-          "line": 146
+          "line": 155
+        },
+        {
+          "level": 2,
+          "text": "Hub memories outranking the answer",
+          "line": 169
         },
         {
           "level": 2,
           "text": "Inspecting the live config",
-          "line": 159
+          "line": 207
         }
       ]
     },

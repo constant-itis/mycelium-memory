@@ -897,6 +897,31 @@ mcp = FastMCP(
 )
 
 
+def _proxy_identity() -> str:
+    """Caller identity from the request header named by [server] identity_header.
+
+    Off by default (identity_header = ""). When set and the header is present,
+    its value overrides any client-supplied `agent`, so attribution no longer
+    depends on each client remembering to pass agent=. Only trustworthy behind a
+    reverse proxy that authenticates the caller and OVERWRITES this header on
+    every request, with the server bound where clients can't reach it directly;
+    otherwise a client can send the header itself, same as agent=. Empty for
+    stdio callers and requests without the header, who keep the agent they pass.
+    """
+    name = (_cfg().server.get("identity_header") or "").strip()
+    if not name:
+        return ""
+    try:
+        req = mcp.get_context().request_context.request
+        if req is not None:
+            v = req.headers.get(name)
+            if v and v.strip():
+                return v.strip()
+    except Exception:
+        pass
+    return ""
+
+
 def _check_duplicates(conn, content: str, project: str = "", threshold: float = 0.6) -> list[dict]:
     raw_tokens = {
         t.lower()
@@ -961,6 +986,7 @@ def save(
     later; the flag makes them outrank generic matches at recall time and renders
     an [OVERRIDES-PRIOR] marker.
     """
+    agent = _proxy_identity() or agent
     conn = get_db()
     now = _now()
 
@@ -1112,6 +1138,7 @@ def recall(query: str, project: str = "", limit: int = 5, agent: str = "") -> st
     Returns a unified ranked list where connection strength is a ranking signal.
     Checks resolvers first for disambiguation.
     """
+    agent = _proxy_identity() or agent
     conn = get_db()
     pruned = _apply_decay(conn)
 
@@ -1306,6 +1333,7 @@ def context(project: str = "", agent: str = "") -> str:
     Returns the most connected, most accessed memories. Call at session start.
     When agent is provided, ranks by that agent's access patterns.
     """
+    agent = _proxy_identity() or agent
     conn = get_db()
     _apply_decay(conn)
     hub_limit = _cfg().memory["hub_limit"]
@@ -1963,6 +1991,7 @@ if _cfg().foundry.get("enabled", True):
         Run `mycelium foundry ingest` (or set ingest_interval_seconds) to drain
         the JSONL log into the foundry SQLite for queryable history.
         """
+        agent = _proxy_identity() or agent
         ok = foundry_publish(
             decision_point,
             agent,

@@ -175,9 +175,9 @@
         "fn:mycelium.config:Config.to_dict"
       ],
       "paths": [
-        "mycelium/config.py:226-257",
+        "mycelium/config.py:227-258",
         "mycelium/server.py:49-57",
-        "mycelium/config.py:215-223"
+        "mycelium/config.py:216-224"
       ]
     },
     {
@@ -260,7 +260,7 @@
         "fn:mycelium.server:_check_duplicates"
       ],
       "paths": [
-        "mycelium/server.py:900-935"
+        "mycelium/server.py:925-960"
       ]
     },
     {
@@ -291,10 +291,10 @@
         "fn:mycelium.server:_column_exists"
       ],
       "paths": [
-        "mycelium/server.py:1438-1463",
-        "mycelium/server.py:1466-1480",
-        "mycelium/server.py:1422-1435",
-        "mycelium/server.py:1412-1419"
+        "mycelium/server.py:1466-1491",
+        "mycelium/server.py:1494-1508",
+        "mycelium/server.py:1450-1463",
+        "mycelium/server.py:1440-1447"
       ]
     },
     {
@@ -320,7 +320,7 @@
         "mycelium/maintain.py:192-224",
         "mycelium/maintain.py:72-108",
         "mycelium/maintain.py:45-64",
-        "mycelium/server.py:1623-1651"
+        "mycelium/server.py:1651-1679"
       ]
     },
     {
@@ -404,73 +404,73 @@
     {
       "name": "connections",
       "implemented_by": "comp.read_path",
-      "path": "mycelium/server.py:1923-1940",
+      "path": "mycelium/server.py:1951-1968",
       "summary": "Show all connections for a specific memory - the local network topology."
     },
     {
       "name": "consolidate",
       "implemented_by": "comp.maintenance",
-      "path": "mycelium/server.py:1656-1706",
+      "path": "mycelium/server.py:1684-1734",
       "summary": "Show memories ready for consolidation."
     },
     {
       "name": "context",
       "implemented_by": "comp.read_path",
-      "path": "mycelium/server.py:1303-1392",
+      "path": "mycelium/server.py:1330-1420",
       "summary": "Load startup context - the hubs of your memory network."
     },
     {
       "name": "discover",
       "implemented_by": "comp.discover",
-      "path": "mycelium/server.py:1711-1838",
+      "path": "mycelium/server.py:1739-1866",
       "summary": "Discover hidden connections in the memory network."
     },
     {
       "name": "forget",
       "implemented_by": "comp.maintenance",
-      "path": "mycelium/server.py:1843-1868",
+      "path": "mycelium/server.py:1871-1896",
       "summary": "Delete a memory and all its connections."
     },
     {
       "name": "maintain",
       "implemented_by": "comp.maintenance",
-      "path": "mycelium/server.py:1893-1918",
+      "path": "mycelium/server.py:1921-1946",
       "summary": "Periodic memory consolidation - snapshot, plan, cold-mark, orphan rescue."
     },
     {
       "name": "pin",
       "implemented_by": "comp.write_path",
-      "path": "mycelium/server.py:1873-1888",
+      "path": "mycelium/server.py:1901-1916",
       "summary": "Pin or unpin a memory. Pinned memories' connections never decay below the"
     },
     {
       "name": "recall",
       "implemented_by": "comp.read_path",
-      "path": "mycelium/server.py:1109-1298",
+      "path": "mycelium/server.py:1135-1325",
       "summary": "Search memories and propagate through connections."
     },
     {
       "name": "recent",
       "implemented_by": "comp.episodic",
-      "path": "mycelium/server.py:1485-1524",
+      "path": "mycelium/server.py:1513-1552",
       "summary": "Recent episodic digest - what's been worked on lately, newest first."
     },
     {
       "name": "resolve",
       "implemented_by": "comp.write_path",
-      "path": "mycelium/server.py:1068-1104",
+      "path": "mycelium/server.py:1094-1130",
       "summary": "Create a disambiguation memory for an ambiguous term."
     },
     {
       "name": "review",
       "implemented_by": "comp.maintenance",
-      "path": "mycelium/server.py:1563-1615",
+      "path": "mycelium/server.py:1591-1643",
       "summary": "Review the health of the memory network."
     },
     {
       "name": "save",
       "implemented_by": "comp.write_path",
-      "path": "mycelium/server.py:940-1063",
+      "path": "mycelium/server.py:965-1089",
       "summary": "Save a memory. Keep it short and dense - one idea per memory."
     }
   ],
