@@ -30,10 +30,19 @@ your single source of truth when something feels off.
 | `port` | `8200` | HTTP port. Ignored in stdio mode. |
 | `transport` | `"stdio"` | `"stdio"` for one-client-per-process (the default for Claude CLI). `"http"` for multi-client / multi-machine. |
 | `log_level` | `"info"` | `"debug"` is loud but useful when tools aren't behaving. |
+| `identity_header` | `""` | HTTP only. Name of a request header carrying the caller's name, e.g. `"X-Forwarded-User"`. When set and present, it overrides the `agent` a client passes to `save`, `recall`, `context` and `log_decision`. Empty = off. |
 
 **When you'd change these:** `transport = "http"` + `host = "0.0.0.0"` if you
 want multiple machines (or both Claude + Codex on different boxes) hitting the
 same memory store.
+
+**`identity_header` is only as trustworthy as the proxy in front.** Use it when a
+reverse proxy (Caddy, nginx, oauth2-proxy...) authenticates each caller and
+**overwrites** the header with their name on every request, and Mycelium listens
+only where clients can't reach it directly (e.g. `host = "127.0.0.1"` behind the
+proxy). Then attribution is set server-side and doesn't depend on every client
+remembering to pass `agent=`. Without such a proxy a client can send the header
+itself, which is no better than `agent=`, so leave it empty.
 
 ## `[storage]`
 

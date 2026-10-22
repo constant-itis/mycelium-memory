@@ -10,6 +10,10 @@ host = "127.0.0.1"
 port = 8200
 transport = "stdio"        # "stdio" | "http"
 log_level = "info"         # "debug" | "info" | "warning" | "error"
+# Request header holding the caller's name, set by a trusted reverse proxy that
+# authenticates callers and overwrites it (e.g. "X-Forwarded-User"). When set, it
+# overrides the agent= clients pass. Leave empty unless such a proxy is in front.
+identity_header = ""
 
 [storage]
 db_path = "~/.mycelium/memory.db"

@@ -20,6 +20,7 @@ DEFAULTS: dict[str, Any] = {
         "port": 8200,
         "transport": "stdio",
         "log_level": "info",
+        "identity_header": "",
     },
     "storage": {
         "db_path": "~/.mycelium/memory.db",
